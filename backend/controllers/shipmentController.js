@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
 const {
   generateTrackingId,
@@ -17,6 +18,41 @@ const assertValidStatus = (status) => {
   }
 };
 
+const createValidationError = (message) => {
+  const error = new Error(message);
+  error.statusCode = 400;
+  throw error;
+};
+
+const validateParcelItems = (items) => {
+  if (items === undefined || items === null) return null;
+  if (!Array.isArray(items)) createValidationError('parcel_items must be an array.');
+  return items.map((item, index) => {
+    if (typeof item !== 'object' || item === null) {
+      createValidationError(`parcel_items[${index}] must be an object.`);
+    }
+    const qty = Number(item.qty || 0);
+    if (Number.isNaN(qty) || qty < 0) {
+      createValidationError(`parcel_items[${index}].qty must be a non-negative number.`);
+    }
+    const parcelShippingCost = item.parcel_shipping_cost != null ? Number(item.parcel_shipping_cost) : null;
+    const parcelClearanceCost = item.parcel_clearance_cost != null ? Number(item.parcel_clearance_cost) : null;
+    const parcelTotalCost = item.parcel_total_cost != null ? Number(item.parcel_total_cost) : null;
+    if ((item.parcel_shipping_cost != null && Number.isNaN(parcelShippingCost)) || (item.parcel_clearance_cost != null && Number.isNaN(parcelClearanceCost)) || (item.parcel_total_cost != null && Number.isNaN(parcelTotalCost))) {
+      createValidationError(`parcel_items[${index}] cost fields must be numeric.`);
+    }
+    return {
+      qty,
+      product: item.product != null ? String(item.product) : null,
+      status: item.status != null ? String(item.status) : null,
+      description: item.description != null ? String(item.description) : null,
+      parcel_shipping_cost: parcelShippingCost,
+      parcel_clearance_cost: parcelClearanceCost,
+      parcel_total_cost: parcelTotalCost,
+    };
+  });
+};
+
 const logShipmentActivity = async (shipmentId, action, details, adminId = null) => {
   await pool.execute(
     `INSERT INTO shipment_activity_logs (shipment_id, action, details, created_by)
@@ -29,32 +65,49 @@ const logShipmentActivity = async (shipmentId, action, details, adminId = null) 
 exports.trackShipment = async (req, res) => {
   try {
     const { trackingId } = req.params;
+    let adminUser = null;
+
+    try {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        adminUser = decoded && decoded.id ? decoded : null;
+      }
+    } catch (authErr) {
+      adminUser = null;
+    }
+
     const customerKey = String(req.query.customer || '').trim().toLowerCase();
 
-    if (!customerKey) {
+    if (!customerKey && !adminUser) {
       return res.status(400).json({
         success: false,
         message: 'Enter the tracking code and recipient email or phone number to view this shipment.'
       });
     }
 
-    const [shipments] = await pool.execute(
-      `SELECT * FROM shipments
-       WHERE tracking_id = ?
-       AND (
-        LOWER(COALESCE(recipient_email, '')) = ?
-        OR LOWER(COALESCE(sender_email, '')) = ?
-        OR REPLACE(COALESCE(recipient_phone, ''), ' ', '') = ?
-        OR REPLACE(COALESCE(sender_phone, ''), ' ', '') = ?
-       )`,
-      [
-        trackingId.toUpperCase(),
-        customerKey,
-        customerKey,
-        customerKey.replace(/\s+/g, ''),
-        customerKey.replace(/\s+/g, ''),
-      ]
-    );
+    const query = adminUser
+      ? `SELECT * FROM shipments WHERE tracking_id = ?`
+      : `SELECT * FROM shipments
+         WHERE tracking_id = ?
+         AND (
+          LOWER(COALESCE(recipient_email, '')) = ?
+          OR LOWER(COALESCE(sender_email, '')) = ?
+          OR REPLACE(COALESCE(recipient_phone, ''), ' ', '') = ?
+          OR REPLACE(COALESCE(sender_phone, ''), ' ', '') = ?
+         )`;
+    const params = adminUser
+      ? [trackingId.toUpperCase()]
+      : [
+          trackingId.toUpperCase(),
+          customerKey,
+          customerKey,
+          customerKey.replace(/\s+/g, ''),
+          customerKey.replace(/\s+/g, ''),
+        ];
+
+    const [shipments] = await pool.execute(query, params);
     if (!shipments.length) {
       return res.status(404).json({ success: false, message: 'Tracking details were not found for those customer details.' });
     }
@@ -65,9 +118,35 @@ exports.trackShipment = async (req, res) => {
     const [media] = await pool.execute(
       'SELECT * FROM shipment_media WHERE shipment_id = ? ORDER BY uploaded_at DESC', [shipment.id]
     );
-    // Strip admin_notes from public response
+
+    const publicShipment = {
+      trackingNumber: shipment.tracking_id,
+      status: shipment.status,
+      currentLocation: shipment.current_location || 'In Transit - Processing Hub',
+      estimatedDelivery: shipment.estimated_delivery,
+      origin: shipment.sender_address || shipment.sender_city || 'Origin not available',
+      destination: shipment.recipient_address || shipment.recipient_city || 'Destination not available',
+      senderName: shipment.sender_name,
+      recipientName: shipment.recipient_name,
+      serviceType: shipment.service_type,
+      packageType: shipment.package_type,
+      weight: shipment.weight,
+      weightUnit: shipment.weight_unit,
+      shipmentCost: shipment.shipment_cost,
+      clearanceCost: shipment.clearance_cost,
+      totalAmount: shipment.total_amount,
+      paymentStatus: shipment.payment_status,
+      events: events.map((event) => ({
+        id: event.id,
+        status: event.status,
+        location: event.location,
+        description: event.description,
+        eventTime: event.event_time,
+      })),
+    };
+
     delete shipment.admin_notes;
-    res.json({ success: true, shipment, events, media });
+    res.json({ success: true, shipment: publicShipment, media });
   } catch (err) {
     console.error('Track shipment error:', err);
     res.status(500).json({ success: false, message: 'Server error.' });
@@ -145,35 +224,66 @@ exports.createShipment = async (req, res) => {
     const tracking_id = await generateTrackingId(pool);
     const {
       sender_name, sender_email, sender_phone, sender_address, sender_city,
-      sender_state, sender_country, sender_zip,
+      sender_state, sender_country, sender_zip, sender_postal_code,
+      order_id,
       recipient_name, recipient_email, recipient_phone, recipient_address,
-      recipient_city, recipient_state, recipient_country, recipient_zip,
+      recipient_city, recipient_state, recipient_country, recipient_zip, recipient_postal_code,
       description, weight, weight_unit, dimensions, package_type, declared_value,
       service_type, status, priority, ship_date, estimated_delivery,
-      current_location, notes, admin_notes
+      current_location, notes, admin_notes,
+      payment_status, currency, shipment_cost, clearance_cost, total_amount,
+      parcel_quantity, parcel_product, parcel_status, parcel_description,
+      parcel_shipping_cost, parcel_total_cost, parcel_items
     } = req.body;
     const normalizedStatus = normalizeStatus(status);
     assertValidStatus(normalizedStatus);
 
+    // Generate or normalize order ID
+    let orderId = order_id && String(order_id).trim() ? String(order_id).trim() : null;
+    if (!orderId) {
+      let isUnique = false;
+      let attempts = 0;
+      while (!isUnique && attempts < 5) {
+        const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
+        orderId = `ORD-${Date.now().toString().slice(-6)}-${rand}`;
+        const [rows] = await pool.execute('SELECT id FROM shipments WHERE order_id = ?', [orderId]);
+        if (!rows.length) isUnique = true;
+        attempts++;
+      }
+      if (!orderId) orderId = `ORD-${Date.now()}`;
+    }
+
+    const validatedParcelItems = validateParcelItems(parcel_items);
+    const senderZip = sender_zip || sender_postal_code || null;
+    const recipientZip = recipient_zip || recipient_postal_code || null;
+    const numericShipmentCost = shipment_cost != null ? Number(shipment_cost) : null;
+    const numericClearanceCost = clearance_cost != null ? Number(clearance_cost) : null;
+    const numericTotalAmount = total_amount != null ? Number(total_amount) : null;
+    const numericDeclaredValue = declared_value != null ? Number(declared_value) : null;
+    const numericParcelQuantity = parcel_quantity != null ? Number(parcel_quantity) : null;
     const [result] = await pool.execute(
       `INSERT INTO shipments (
-        tracking_id, sender_name, sender_email, sender_phone, sender_address,
+        tracking_id, order_id, sender_name, sender_email, sender_phone, sender_address,
         sender_city, sender_state, sender_country, sender_zip,
         recipient_name, recipient_email, recipient_phone, recipient_address,
         recipient_city, recipient_state, recipient_country, recipient_zip,
+        shipment_cost, clearance_cost, total_amount, payment_status, currency,
+        parcel_quantity, parcel_product, parcel_status, parcel_description,
+        parcel_shipping_cost, parcel_total_cost, parcel_items,
         description, weight, weight_unit, dimensions, package_type, declared_value,
         service_type, status, priority, ship_date, estimated_delivery,
         current_location, notes, admin_notes, created_by
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
-        tracking_id, sender_name, sender_email||null, sender_phone||null, sender_address,
-        sender_city, sender_state||null, sender_country||'USA', sender_zip||null,
+        tracking_id, orderId, sender_name, sender_email||null, sender_phone||null, sender_address,
+        sender_city, sender_state||null, sender_country||'USA', senderZip,
         recipient_name, recipient_email||null, recipient_phone||null, recipient_address,
-        recipient_city, recipient_state||null, recipient_country||'USA', recipient_zip||null,
-        description||null, weight||null, weight_unit||'lbs', dimensions||null,
-        package_type||null, declared_value||null,
-        service_type||'standard', normalizedStatus, priority||'normal',
-        ship_date||null, estimated_delivery||null,
+        recipient_city, recipient_state||null, recipient_country||'USA', recipientZip,
+        numericShipmentCost, numericClearanceCost, numericTotalAmount, payment_status||'pending', currency||'USD',
+        numericParcelQuantity, parcel_product||null, parcel_status||null, parcel_description||null,
+        parcel_shipping_cost||null, parcel_total_cost||null, validatedParcelItems ? JSON.stringify(validatedParcelItems) : null,
+        description||null, weight||null, weight_unit||'lbs', dimensions||null, package_type||null, numericDeclaredValue,
+        service_type||'standard', normalizedStatus, priority||'normal', ship_date||null, estimated_delivery||null,
         current_location||null, notes||null, admin_notes||null, req.admin.id
       ]
     );
@@ -190,8 +300,8 @@ exports.createShipment = async (req, res) => {
         await pool.execute('UPDATE shipments SET customer_id = ? WHERE id = ?', [customers[0].id, result.insertId]);
       }
     }
-    await logShipmentActivity(result.insertId, 'shipment_created', { tracking_id, status: normalizedStatus }, req.admin.id);
-    res.status(201).json({ success: true, message: 'Shipment created successfully.', tracking_id, id: result.insertId });
+    await logShipmentActivity(result.insertId, 'shipment_created', { tracking_id, order_id: orderId, status: normalizedStatus }, req.admin.id);
+    res.status(201).json({ success: true, message: 'Shipment created successfully.', tracking_id, order_id: orderId, id: result.insertId });
   } catch (err) {
     console.error('Create shipment error:', err);
     res.status(err.statusCode || 500).json({ success: false, message: err.statusCode ? err.message : 'Server error.' });
@@ -206,10 +316,14 @@ exports.updateShipment = async (req, res) => {
     if (!existing.length) return res.status(404).json({ success: false, message: 'Shipment not found.' });
     
     const fields = [
+      'order_id',
       'sender_name','sender_email','sender_phone','sender_address','sender_city',
       'sender_state','sender_country','sender_zip',
       'recipient_name','recipient_email','recipient_phone','recipient_address',
       'recipient_city','recipient_state','recipient_country','recipient_zip',
+      'shipment_cost','clearance_cost','total_amount','payment_status','currency',
+      'parcel_quantity','parcel_product','parcel_status','parcel_description','parcel_shipping_cost',
+      'parcel_total_cost','parcel_items',
       'description','weight','weight_unit','dimensions','package_type','declared_value',
       'service_type','status','priority','ship_date','estimated_delivery',
       'current_location','notes','admin_notes'
@@ -224,6 +338,10 @@ exports.updateShipment = async (req, res) => {
           assertValidStatus(normalizedStatus);
           updates.push(`${f} = ?`);
           values.push(normalizedStatus);
+        } else if (f === 'parcel_items') {
+          const validatedParcelItems = validateParcelItems(req.body[f]);
+          updates.push(`${f} = ?`);
+          values.push(validatedParcelItems ? JSON.stringify(validatedParcelItems) : null);
         } else {
           updates.push(`${f} = ?`);
           values.push(req.body[f]);

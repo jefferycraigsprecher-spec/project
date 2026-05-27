@@ -1,128 +1,91 @@
-import Link from 'next/link'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
-import { ArrowRight, PackagePlus, Plane, ShieldCheck, ShipWheel, Truck, Warehouse } from 'lucide-react'
+import Link from 'next/link';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import Testimonials from '@/components/sections/Testimonials';
+import { ArrowRight, CheckCircle } from 'lucide-react';
 
 const services = [
   {
-    icon: Plane,
     title: 'Air Freight',
-    summary: 'Fast, dependable air cargo support for urgent shipments, high-value goods, and time-critical deliveries.',
-    detail: 'Ideal for cross-border express moves, urgent spare parts, and premium cargo requiring rapid turnaround.',
-    image: 'https://coexzggshiplogistics.live/temp/custom/images/services/service1.jpg',
+    description: 'IATA-endorsed air forwarding for urgent, cross-border shipments with high visibility.',
+    image: '/images/services/service1.jpg',
   },
   {
-    icon: ShipWheel,
     title: 'Sea/Ocean Freight',
-    summary: 'Large-volume routing built for cost-conscious supply chains.',
-    detail: 'From FCL planning to port-to-door coordination, we simplify complex cargo movement across global routes.',
-    image: 'https://coexzggshiplogistics.live/temp/custom/images/services/service2.jpg',
+    description: 'FCL, LCL, and door-to-door ocean transport backed by professional port handling.',
+    image: '/images/services/service2.jpg',
   },
   {
-    icon: Truck,
     title: 'Road Transportation',
-    summary: 'Regional and last-mile delivery with dependable tracking.',
-    detail: 'Built for time-sensitive distribution, route planning, and dependable delivery windows across every mile.',
-    image: 'https://coexzggshiplogistics.live/temp/custom/images/services/service3.jpg',
+    description: 'National and regional transport with reliable last-mile delivery coverage.',
+    image: '/images/services/service3.jpg',
   },
   {
-    icon: ShieldCheck,
-    title: 'Secure Logistics',
-    summary: 'Secure, controlled handling for sensitive documentation, diplomatic materials, and high-security cargo.',
-    detail: 'Designed for strict custody, discreet routing, and end-to-end visibility when security is non-negotiable.',
-    image: 'https://coexzggshiplogistics.live/temp/custom/images/services/service4.jpg',
+    title: 'Diplomatic Logistics',
+    description: 'Secure and discreet handling for sensitive materials, documents, and diplomatic cargo.',
+    image: '/images/services/service4.jpg',
   },
   {
-    icon: Warehouse,
     title: 'Warehousing',
-    summary: 'Purpose-built storage operations that support inventory buffering, consolidation, and short-term holding.',
-    detail: 'Flexible storage capacity with organized receiving, dispatch, and inventory control built for pace.',
-    image: 'https://coexzggshiplogistics.live/temp/custom/images/services/service5.jpg',
+    description: 'Flexible storage solutions with real-time inventory visibility and secure staging.',
+    image: '/images/services/service5.jpg',
   },
   {
-    icon: PackagePlus,
     title: 'Packaging & Storage',
-    summary: 'Professional packaging, labeling, and storage support that protects goods from dispatch to delivery.',
-    detail: 'From protective packaging to consolidated storage, we keep your cargo secure, organized, and ready for movement.',
-    image: 'https://coexzggshiplogistics.live/temp/custom/images/services/service6.jpg',
+    description: 'Protective packaging, consolidation, and cargo insurance for every shipment type.',
+    image: '/images/services/service6.jpg',
   },
-]
+];
 
 const benefits = [
-  '24/7 shipment visibility and proactive communication',
-  'Custom handling for fragile, high-value, and urgent freight',
-  'Cross-border logistics support for smooth customs movement',
-  'Dedicated coordination for urgent and secure cargo programs',
-]
+  'Real-time tracking and proactive communication',
+  'Custom handling for fragile and high-value freight',
+  'Cross-border support for smooth customs movement',
+  'Dedicated coordination for urgent and secure cargo',
+];
 
 export default function ServicesPage() {
   return (
-    <>
+    <div className="bg-slate-950 text-white font-sans">
       <Navbar />
+
       <main>
-        <section className="relative overflow-hidden bg-slate-950 text-white">
-          <video
-            className="absolute inset-0 h-full w-full object-cover"
-            src="https://cdn.coverr.co/videos/coverr-container-ship-loading-1575296849525/1080p.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster="/videos/images/warehouse.jpg"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-brand-700/70" />
-          <div className="absolute -left-16 top-16 h-48 w-48 rounded-full bg-brand-500/20 blur-3xl" />
-          <div className="absolute bottom-8 right-8 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl" />
-
-          <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 lg:py-28">
-            <div className="max-w-3xl">
-              <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-brand-100">
-                OUR SERVICE
-              </span>
-              <h1 className="mt-5 section-title text-white">Logistics solutions built for every mile, mode, and mission.</h1>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-gray-100 sm:text-lg">
-                From urgent air cargo to secure diplomatic handling, we deliver an end-to-end logistics experience with visible control, dependable coordination, and polished execution.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-4">
-                <Link href="/contact" className="btn-primary">
-                  Get a Quote
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <a href="#services" className="btn-outline border-white text-white hover:bg-white hover:text-navy-900">
-                  Explore Services
-                </a>
-              </div>
-            </div>
-
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {[
-                { label: 'Modes Covered', value: '6' },
-                { label: 'Secure Handling', value: '24/7' },
-                { label: 'Cross-Border Support', value: 'Global' },
-                { label: 'Response Time', value: 'Same Day' },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur-sm">
-                  <p className="text-sm uppercase tracking-[0.2em] text-brand-100">{item.label}</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">{item.value}</p>
-                </div>
-              ))}
+        {/* Hero Section */}
+        <section className="relative overflow-hidden pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl text-center mb-16">
+            <h1 className="text-5xl sm:text-6xl font-bold mb-6">
+              Comprehensive Logistics Services
+            </h1>
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+              From air freight to secure diplomatic handling, we deliver end-to-end logistics with visible control, dependable coordination, and polished execution.
+            </p>
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/contact" className="inline-flex items-center justify-center rounded-full bg-brand-500 px-8 py-4 text-sm font-semibold text-white shadow-lg shadow-brand-500/30 transition hover:bg-brand-400">
+                Get a Quote <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+              <Link href="/track" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-8 py-4 text-sm font-semibold text-white transition hover:bg-white/10">
+                Track a Shipment
+              </Link>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="rounded-[2rem] bg-gradient-to-br from-amber-50 to-white p-6 sm:p-8">
+        {/* Why Us Section */}
+        <section className="px-4 sm:px-6 lg:px-8 pb-24">
+          <div className="mx-auto max-w-7xl rounded-[2rem] bg-white/95 p-8 shadow-2xl backdrop-blur-xl ring-1 ring-slate-900/5 sm:p-10">
             <div className="max-w-3xl">
-              <p className="section-subtitle">Why teams choose us</p>
-              <h2 className="mt-3 section-title text-navy-500">A polished logistics experience from planning to delivery.</h2>
-              <p className="mt-4 text-base leading-7 text-gray-600">
+              <p className="text-brand-600 font-semibold uppercase tracking-widest mb-3">Why Choose Our Services</p>
+              <h2 className="text-3xl font-bold text-slate-950 sm:text-4xl mb-6">
+                A polished logistics experience from planning to delivery.
+              </h2>
+              <p className="text-slate-600 leading-8 mb-8">
                 Every shipment is managed with a unified approach — rapid coordination, clean communication, and real-time visibility. Whether you need a single leg or a fully integrated logistics program, we build the path around your cargo and timeline.
               </p>
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              <div className="grid md:grid-cols-2 gap-4">
                 {benefits.map((item) => (
-                  <div key={item} className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-4 shadow-sm">
-                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-500" />
-                    <p className="text-sm text-gray-700">{item}</p>
+                  <div key={item} className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-brand-600 shrink-0 mt-1" />
+                    <p className="text-slate-700">{item}</p>
                   </div>
                 ))}
               </div>
@@ -130,54 +93,74 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        <section id="services" className="bg-gray-50 py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl">
-              <p className="section-subtitle">OUR SERVICE</p>
-              <h2 className="mt-3 section-title text-navy-500">Built for air, sea, road, secure, and storage logistics.</h2>
-              <p className="mt-4 text-base leading-7 text-gray-600">
+        {/* Services Grid */}
+        <section className="px-4 sm:px-6 lg:px-8 py-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="text-center mb-16">
+              <p className="text-brand-400 font-semibold uppercase tracking-widest mb-3">Our Services</p>
+              <h2 className="text-4xl font-bold mb-6">Built for air, sea, road, secure, and storage logistics</h2>
+              <p className="text-slate-300 text-lg max-w-2xl mx-auto">
                 Each service is designed to support your cargo with clear communication, secure handling, and tailored dispatch support.
               </p>
             </div>
 
-            <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {services.map(({ icon: Icon, title, summary, detail, image }) => (
-                <article key={title} className="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-35px_rgba(15,23,42,0.45)]">
-                  <img src={image} alt={title} className="h-40 w-full object-cover" loading="lazy" />
-                  <div className="p-6">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/30">
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <h3 className="mt-5 text-xl font-semibold text-navy-900">{title}</h3>
-                    <p className="mt-3 text-sm leading-6 text-gray-600">{summary}</p>
-                    <p className="mt-3 text-sm leading-6 text-gray-500">{detail}</p>
-                    <Link href="/contact" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-500">
-                      Discuss this service
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {services.map(({ image, title, description }) => (
+                <div
+                  key={title}
+                  className="rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl backdrop-blur-xl"
+                >
+                  <div className="mb-6 overflow-hidden rounded-2xl h-40">
+                    <img src={image} alt={title} className="h-full w-full object-cover" />
                   </div>
-                </article>
+                  <h3 className="text-xl font-semibold text-white mb-3">{title}</h3>
+                  <p className="text-slate-300 text-sm leading-7 mb-6">{description}</p>
+                  <Link href="/contact" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-400 hover:text-brand-300">
+                    Learn More <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="rounded-[2rem] bg-gradient-to-r from-slate-950 to-navy-700 px-6 py-8 text-white sm:px-8">
+        {/* Partners Marquee */}
+        <section className="partner-marquee">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="partner-track">
+              <img src="/images/partners/partner-01.png" alt="partner-01" />
+              <img src="/images/partners/partner-02.png" alt="partner-02" />
+              <img src="/images/partners/partner-03.png" alt="partner-03" />
+              <img src="/images/partners/partner-04.png" alt="partner-04" />
+              <img src="/images/partners/partner-05.png" alt="partner-05" />
+              <img src="/images/partners/partner-01.png" alt="partner-01" />
+              <img src="/images/partners/partner-02.png" alt="partner-02" />
+              <img src="/images/partners/partner-03.png" alt="partner-03" />
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="bg-slate-900/50 px-4 sm:px-6 lg:px-8 py-24">
+          <div className="mx-auto max-w-7xl rounded-[2rem] bg-gradient-to-r from-brand-600 to-brand-700 px-8 py-12 text-white">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="section-subtitle text-brand-200">Need a tailored plan?</p>
-                <h2 className="mt-3 text-2xl font-semibold sm:text-3xl">Let’s build the right logistics solution for your cargo.</h2>
+                <h2 className="text-3xl font-bold">Need a tailored logistics solution?</h2>
+                <p className="text-brand-100 text-lg mt-2">Let's build the right plan for your cargo.</p>
               </div>
               <div className="flex flex-wrap gap-3">
-                <Link href="/contact" className="btn-primary">Request a Quote</Link>
-                <Link href="/track" className="btn-outline border-white text-white hover:bg-white hover:text-navy-900">Track a Shipment</Link>
+                <Link href="/contact" className="inline-flex items-center justify-center rounded-full bg-white px-8 py-4 text-sm font-semibold text-brand-600 shadow-lg transition hover:bg-slate-100">
+                  Request a Quote
+                </Link>
               </div>
             </div>
           </div>
         </section>
       </main>
+
+      <Testimonials />
+
       <Footer />
-    </>
-  )
+    </div>
+  );
 }

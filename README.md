@@ -171,6 +171,9 @@ The system includes these core tables:
 - `GET /api/shipments/:id` - Get shipment details
 - `PUT /api/shipments/:id` - Update shipment
 
+### Backend examples
+- `backend/examples/create_shipment.php` - PHP sample for creating a shipment via the API
+
 ### Customers
 - `GET /api/customers/profile` - Get customer profile
 - `PUT /api/customers/profile` - Update profile

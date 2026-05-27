@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --brand-orange: #f97316;
-  --brand-orange-dark: #ea580c;
+  --brand-wine: #7b113a;
+  --brand-wine-dark: #660f2f;
   --navy: #1e3a5f;
   --navy-dark: #12233d;
 }
@@ -85,7 +85,7 @@ h1, h2, h3, h4, h5 {
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: var(--brand-orange); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--brand-wine); border-radius: 3px; }
 
 /* Admin sidebar */
 .admin-sidebar { @apply bg-navy-900 min-h-screen; }
@@ -119,7 +119,7 @@ h1, h2, h3, h4, h5 {
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 9999px;
-  background: rgba(249, 115, 22, 0.12);
+  background: rgba(123, 17, 58, 0.12);
   font-size: 0.9rem;
 }
 
@@ -225,7 +225,7 @@ h1, h2, h3, h4, h5 {
 
 .btn{
     padding: 15px 35px;
-    background: #ff6600;
+    background: #7b113a;
     color: white;
     text-decoration: none;
     border-radius: 5px;
@@ -264,3 +264,27 @@ h1, h2, h3, h4, h5 {
     color: white;
     padding: 20px;
 }
+
+/* Partners marquee */
+.partner-marquee{ 
+  overflow: hidden; 
+  background: transparent; 
+  padding: 2.5rem 0; 
+}
+.partner-track{ 
+  display: flex; 
+  gap: 2.5rem; 
+  align-items: center; 
+  animation: marquee 20s linear infinite; 
+}
+.partner-track img{ 
+  height: 48px; 
+  opacity: 0.9; 
+  filter: grayscale(20%); 
+}
+@keyframes marquee{ 
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.partner-track:hover{ animation-play-state: paused; }

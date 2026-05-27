@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import Testimonials from '@/components/sections/Testimonials'
 import StatusBadge from '@/components/ui/StatusBadge'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import api from '@/lib/api'
@@ -222,6 +223,8 @@ function TrackingContent() {
           )}
         </section>
       </main>
+      <Testimonials />
+
       <Footer />
     </>
   )

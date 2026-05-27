@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import Testimonials from '@/components/sections/Testimonials'
 import { ChevronRight, Clock3, Headphones, Mail, MessageCircle, Phone, Search, ShieldCheck, Truck } from 'lucide-react'
 
 type Message = {
@@ -97,190 +98,138 @@ export default function SupportPage() {
   }
 
   return (
-    <>
+    <div className="bg-slate-950 text-white font-sans">
       <Navbar />
-      <main>
-        <section className="bg-gradient-to-r from-slate-950 via-slate-900 to-navy-800 py-20">
-          <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-[1.1fr,0.9fr] lg:items-center">
-            <div>
-              <p className="section-subtitle text-brand-200">Help & Support Center</p>
-              <h1 className="mt-3 font-display text-4xl uppercase leading-tight text-white md:text-5xl">
-                Support that keeps your shipment moving.
-              </h1>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-gray-200">
-                Access quick help, real-time guidance, and practical next steps for tracking, quotes, deliveries, and secure logistics coordination.
-              </p>
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/contact" className="btn-primary justify-center">
-                  Contact Support
-                </Link>
-                <Link href="/track" className="btn-outline border-white text-white hover:bg-white hover:text-slate-950 justify-center">
-                  Track Shipment
-                </Link>
+      <main>
+        <section className="relative overflow-hidden pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl text-center">
+            <h1 className="text-5xl sm:text-6xl font-bold mb-6">
+              Support Center
+            </h1>
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+              Need help with a shipment, quote, or logistics question? Our support team is ready to assist 24/7.
+            </p>
+          </div>
+        </section>
+
+        <section className="px-4 sm:px-6 lg:px-8 pb-24">
+          <div className="mx-auto max-w-7xl grid gap-12 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="space-y-10">
+              <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-xl">
+                <p className="text-brand-400 uppercase tracking-widest text-sm mb-3">Quick support</p>
+                <h2 className="text-3xl font-bold mb-4">Need help fast?</h2>
+                <p className="text-slate-300 leading-7 mb-6">
+                  Use the support assistant to get immediate guidance on tracking, quotes, urgent shipments, or documentation.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {quickTopics.map(({ title, description, href, icon: Icon }) => (
+                    <Link
+                      key={title}
+                      href={href}
+                      className="rounded-3xl border border-white/10 bg-slate-950/80 p-6 transition hover:border-brand-400/30 hover:bg-slate-950"
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-500/10 text-brand-400">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{title}</h3>
+                          <p className="text-sm text-slate-400">{description}</p>
+                        </div>
+                      </div>
+                      <div className="inline-flex items-center gap-2 text-sm font-semibold text-brand-400">
+                        Continue <ChevronRight className="h-4 w-4" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-xl">
+                <p className="text-brand-400 uppercase tracking-widest text-sm mb-3">Support details</p>
+                <div className="space-y-5">
+                  {[
+                    { icon: Mail, label: 'Email', value: 'support@midwestshipment.com' },
+                    { icon: Phone, label: 'Phone', value: '+1 (614) 555-0123' },
+                    { icon: Clock3, label: 'Hours', value: '24/7 Global Support' },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-start gap-4">
+                      <div className="mt-1 rounded-2xl bg-brand-500/10 p-3 text-brand-400">
+                        <item.icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm uppercase tracking-[0.24em] text-slate-400">{item.label}</p>
+                        <p className="mt-2 text-lg font-semibold text-white">{item.value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-              <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/80 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[0.65rem] font-bold uppercase tracking-[0.3em] text-brand-200">Live chat assistant</p>
-                    <p className="mt-2 text-sm text-gray-200">Instant help for shipment questions and service directions.</p>
-                  </div>
-                  <div className="rounded-full bg-emerald-500/20 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-emerald-200">
-                    Online
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-3">
+            <div className="space-y-10">
+              <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-xl">
+                <p className="text-brand-400 uppercase tracking-widest text-sm mb-4">Live assistant</p>
+                <div className="space-y-4">
                   {messages.map((message, index) => (
                     <div
-                      key={`${message.sender}-${index}`}
-                      className={`max-w-[90%] rounded-[1rem] px-4 py-3 text-sm leading-6 ${
-                        message.sender === 'assistant'
-                          ? 'bg-white/10 text-white'
-                          : 'ml-auto bg-brand-500 text-slate-950'
-                      }`}
+                      key={index}
+                      className={`rounded-3xl p-5 ${message.sender === 'assistant' ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-950'}`}
                     >
-                      {message.text}
+                      <p className="text-sm leading-7">{message.text}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-4 flex gap-3">
-                  <input
+                <div className="mt-6">
+                  <textarea
                     value={draft}
-                    onChange={(event) => setDraft(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault()
-                        handleSend()
-                      }
-                    }}
-                    placeholder="Ask about tracking, quote, or urgent help"
-                    className="flex-1 rounded-[1rem] border border-white/10 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                    onChange={(e) => setDraft(e.target.value)}
+                    rows={4}
+                    className="w-full rounded-3xl border border-slate-700 bg-slate-950/80 px-4 py-4 text-sm text-white outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
+                    placeholder="Ask about tracking, rates, or urgent support..."
                   />
                   <button
+                    type="button"
                     onClick={handleSend}
-                    className="inline-flex items-center justify-center rounded-[1rem] bg-brand-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-950"
+                    className="mt-4 inline-flex items-center justify-center rounded-full bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/30 transition hover:bg-brand-400"
                   >
-                    Send
+                    Send Message
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
 
-        <section className="py-16 bg-white">
-          <div className="mx-auto max-w-7xl px-4">
-            <div className="grid gap-4 md:grid-cols-3">
-              {quickTopics.map(({ title, description, href, icon: Icon }) => (
-                <Link
-                  key={title}
-                  href={href}
-                  className="rounded-[1.5rem] border border-gray-100 bg-gray-50 p-5 transition-transform duration-200 hover:-translate-y-0.5"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-500 text-white">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h2 className="mt-4 text-lg font-semibold text-navy-900">{title}</h2>
-                  <p className="mt-2 text-sm leading-6 text-gray-600">{description}</p>
-                  <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-brand-500">
-                    Explore
-                    <ChevronRight className="h-4 w-4" />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-gray-50 py-16">
-          <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-[0.85fr,1.15fr]">
-            <div>
-              <p className="section-subtitle">Support Options</p>
-              <h2 className="mt-3 section-title text-navy-500">Everything you need for fast answers and dependable follow-up.</h2>
-              <p className="mt-4 text-base leading-7 text-gray-600">
-                From urgent shipment coordination to customer guidance, the support center brings the most common help paths into one place.
-              </p>
-
-              <div className="mt-8 space-y-4">
-                {[
-                  { icon: Clock3, title: '24/7 availability', text: 'Reach support around the clock for urgent updates and after-hours questions.' },
-                  { icon: Search, title: 'Quick self-service', text: 'Use the chat assistant and resource links to resolve common actions faster.' },
-                  { icon: MessageCircle, title: 'Human follow-up', text: 'Escalate important issues and get direct response guidance from our support team.' },
-                ].map(({ icon: Icon, title, text }) => (
-                  <div key={title} className="flex gap-3 rounded-[1.25rem] border border-gray-100 bg-white px-4 py-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-500">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-navy-900">{title}</p>
-                      <p className="mt-1 text-sm leading-6 text-gray-600">{text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_24px_60px_-35px_rgba(15,23,42,0.35)]">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="section-subtitle">FAQ</p>
-                  <h3 className="mt-2 text-2xl font-semibold text-navy-900">Common questions from customers</h3>
-                </div>
-                <div className="rounded-full bg-brand-50 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-brand-600">
-                  Helpful
-                </div>
-              </div>
-
-              <div className="mt-6 space-y-3">
-                {faqItems.map((item, index) => {
-                  const isOpen = openFaq === index
-                  return (
-                    <div key={item.question} className="rounded-[1.25rem] border border-gray-100 bg-gray-50">
-                      <button
-                        type="button"
-                        onClick={() => setOpenFaq(isOpen ? null : index)}
-                        className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left"
-                      >
-                        <span className="font-semibold text-navy-900">{item.question}</span>
-                        <ChevronRight className={`h-4 w-4 shrink-0 text-brand-500 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
-                      </button>
-                      {isOpen && <p className="px-4 pb-4 text-sm leading-6 text-gray-600">{item.answer}</p>}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-slate-950 py-16">
-          <div className="mx-auto max-w-7xl px-4">
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8">
-              <div className="grid gap-8 md:grid-cols-3">
-                <div>
-                  <p className="text-[0.65rem] font-bold uppercase tracking-[0.3em] text-brand-200">Need a direct response?</p>
-                  <h3 className="mt-3 text-2xl font-semibold text-white">Talk to a support specialist.</h3>
-                </div>
-                <div className="space-y-3 text-sm text-gray-200">
-                  <div className="flex items-center gap-3"><Phone className="h-4 w-4 text-brand-300" /> Toll Free Support</div>
-                  <div className="flex items-center gap-3"><Mail className="h-4 w-4 text-brand-300" /> support@midwestshipment.com</div>
-                </div>
-                <div>
-                  <Link href="/contact" className="btn-primary justify-center">
-                    Open Support Ticket
-                  </Link>
+              <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-xl">
+                <p className="text-brand-400 uppercase tracking-widest text-sm mb-4">Frequently Asked Questions</p>
+                <div className="space-y-3">
+                  {faqItems.map((faq, index) => (
+                    <button
+                      key={faq.question}
+                      type="button"
+                      onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                      className="w-full rounded-3xl border border-slate-700 bg-slate-950/80 px-5 py-4 text-left"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="font-semibold text-white">{faq.question}</span>
+                        <span className="text-brand-400">{openFaq === index ? '-' : '+'}</span>
+                      </div>
+                      {openFaq === index ? (
+                        <p className="mt-3 text-sm leading-7 text-slate-300">{faq.answer}</p>
+                      ) : null}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
         </section>
       </main>
+
+      <Testimonials />
+
       <Footer />
-    </>
+    </div>
   )
 }
+

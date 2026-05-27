@@ -1,77 +1,171 @@
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
-import { Shield, Award, Users, TrendingUp } from 'lucide-react'
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import Testimonials from '@/components/sections/Testimonials';
+import { Award, Users, Globe, CheckCircle, MapPin, Phone, Mail, Clock } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AboutPage() {
   return (
-    <>
+    <div className="bg-slate-950 text-white font-sans">
       <Navbar />
+
       <main>
-        <div className="bg-navy-900 py-20">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="section-subtitle text-brand-400 mb-3">Our Story</div>
-            <h1 className="section-title text-white">About Midwest Shipment Company</h1>
-          </div>
-        </div>
-
-        <section className="py-20 max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            
-            <div>
-              <h2 className="section-title mb-6">Built in Columbus.<br />Built for America.</h2>
-              <p className="text-gray-500 leading-relaxed mb-4">
-                Founded in 2008, Midwest Shipment Company started as a small courier service operating out of Columbus, Ohio. 
-                Today, we are one of the Midwest's most trusted logistics providers, handling tens of thousands of shipments monthly.
+        {/* Hero Section */}
+        <section className="relative overflow-hidden pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="text-center mb-16">
+              <h1 className="text-5xl sm:text-6xl font-bold mb-6">
+                About Midwest Shipment
+              </h1>
+              <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+                Leading the logistics revolution with innovative courier solutions, transparent tracking, and unwavering commitment to excellence.
               </p>
-              <p className="text-gray-500 leading-relaxed mb-6">
-                Our headquarters at 1450 Industrial Parkway serves as the nerve center for our operations, 
-                where our dedicated team of logistics professionals works around the clock to ensure your shipments 
-                arrive safely, on time, every time.
-              </p>
-              
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { icon: Shield, title: 'Fully Licensed & Insured', desc: 'DOT & FMCSA certified carrier' },
-                  { icon: Award, title: 'Award Winning', desc: 'BBB A+ rated since 2012' },
-                  { icon: Users, title: '200+ Team Members', desc: 'Across Ohio and the Midwest' },
-                  { icon: TrendingUp, title: 'Growing Fast', desc: '30% year-over-year growth' },
-                ].map(({ icon: Icon, title, desc }) => (
-                  <div key={title} className="border border-gray-100 p-4">
-                    <Icon className="w-5 h-5 text-brand-500 mb-2" />
-                    <p className="font-semibold text-navy-900 text-sm">{title}</p>
-                    <p className="text-gray-500 text-xs mt-1">{desc}</p>
-                  </div>
-                ))}
-              </div>
             </div>
+          </div>
+        </section>
 
-            <div className="bg-navy-900 p-10 text-white">
-              <div className="section-subtitle text-brand-400 mb-4">Our Mission</div>
-              <p className="text-gray-300 leading-relaxed text-lg italic mb-8">
-                "To provide every customer — from individual senders to enterprise shippers — 
-                with the same level of care, precision, and reliability that defines the Midwest spirit."
-              </p>
-              <div className="border-t border-navy-700 pt-6 space-y-3">
-                {['Customer-first approach to every shipment','Real-time transparency and communication','Environmentally responsible logistics','Community-driven values'].map(v => (
-                  <div key={v} className="flex items-start gap-2 text-sm text-gray-400">
-                    <span className="text-brand-400 mt-0.5">▶</span>{v}
-                  </div>
-                ))}
+        {/* Mission & Vision */}
+        <section className="px-4 sm:px-6 lg:px-8 pb-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid md:grid-cols-2 gap-12">
+              <div className="rounded-[2rem] border border-white/10 bg-white/5 p-10 backdrop-blur-xl">
+                <Award className="h-12 w-12 text-brand-400 mb-6" />
+                <h2 className="text-3xl font-bold mb-4">Our Mission</h2>
+                <p className="text-slate-300 leading-8">
+                  To deliver world-class logistics services that empower businesses and individuals to move goods reliably, transparently, and affordably across the globe. We're committed to providing exceptional care for every shipment.
+                </p>
+              </div>
+              <div className="rounded-[2rem] border border-white/10 bg-white/5 p-10 backdrop-blur-xl">
+                <Globe className="h-12 w-12 text-brand-400 mb-6" />
+                <h2 className="text-3xl font-bold mb-4">Our Vision</h2>
+                <p className="text-slate-300 leading-8">
+                  To be the most trusted and innovative courier partner for businesses worldwide, setting industry standards for reliability, speed, and customer satisfaction. Built in Ohio. Built for America. Trusted globally.
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="bg-gray-50 py-16">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-            <div className="section-subtitle mb-3">Our Address</div>
-            <h2 className="section-title mb-4">Visit Our Headquarters</h2>
-            <p className="text-gray-500 text-lg">1450 Industrial Parkway, Columbus, Ohio, USA</p>
-            <p className="text-gray-500">Monday – Friday: 6:00 AM – 8:00 PM ET &nbsp;|&nbsp; Saturday: 8:00 AM – 4:00 PM ET</p>
+        {/* Company Stats */}
+        <section className="bg-slate-900/50 px-4 sm:px-6 lg:px-8 py-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {[
+                { label: 'Years in Business', value: '15+' },
+                { label: 'Global Partners', value: '500+' },
+                { label: 'Shipments Delivered', value: '2M+' },
+                { label: 'Countries Served', value: '160+' },
+              ].map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-4xl sm:text-5xl font-bold text-brand-400 mb-3">{stat.value}</p>
+                  <p className="text-slate-300 text-sm uppercase tracking-widest">{stat.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
+
+        {/* Our Values */}
+        <section className="px-4 sm:px-6 lg:px-8 py-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="text-center mb-16">
+              <p className="text-brand-400 font-semibold uppercase tracking-widest mb-3">Core Values</p>
+              <h2 className="text-4xl font-bold">What Drives Us Every Day</h2>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  title: 'Reliability',
+                  description: 'Every shipment is treated with utmost care. On-time delivery isn\'t a goal—it\'s a promise.',
+                },
+                {
+                  title: 'Transparency',
+                  description: 'Real-time tracking, clear pricing, and honest communication build trust with every customer.',
+                },
+                {
+                  title: 'Innovation',
+                  description: 'Cutting-edge technology and continuous improvement keep us ahead in the logistics industry.',
+                },
+                {
+                  title: 'Customer Focus',
+                  description: '24/7 support and personalized solutions ensure your logistics needs are always our priority.',
+                },
+                {
+                  title: 'Sustainability',
+                  description: 'Eco-conscious operations and responsible practices for a better future.',
+                },
+                {
+                  title: 'Integrity',
+                  description: 'Ethical business practices and fair dealings with partners and customers alike.',
+                },
+              ].map((value) => (
+                <div
+                  key={value.title}
+                  className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl hover:bg-white/10 transition"
+                >
+                  <CheckCircle className="h-8 w-8 text-brand-400 mb-4" />
+                  <h3 className="text-xl font-bold mb-3">{value.title}</h3>
+                  <p className="text-slate-300 text-sm leading-7">{value.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Contact Info */}
+        <section className="bg-slate-900/50 px-4 sm:px-6 lg:px-8 py-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="text-center mb-12">
+              <p className="text-brand-400 font-semibold uppercase tracking-widest mb-3">Our Location</p>
+              <h2 className="text-4xl font-bold mb-6">Columbus Headquarters</h2>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
+                <MapPin className="h-10 w-10 text-brand-400 mb-4" />
+                <h3 className="text-2xl font-bold mb-2">Address</h3>
+                <p className="text-slate-300 text-lg">1450 Industrial Parkway</p>
+                <p className="text-slate-300 text-lg">Columbus, Ohio, USA</p>
+              </div>
+              <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
+                <Clock className="h-10 w-10 text-brand-400 mb-4" />
+                <h3 className="text-2xl font-bold mb-2">Business Hours</h3>
+                <p className="text-slate-300">Monday–Friday: 6:00 AM – 8:00 PM ET</p>
+                <p className="text-slate-300">Saturday: 8:00 AM – 4:00 PM ET</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="px-4 sm:px-6 lg:px-8 py-24">
+          <div className="mx-auto max-w-4xl text-center">
+            <h2 className="text-4xl font-bold mb-6">Ready to Experience Excellence?</h2>
+            <p className="text-xl text-slate-300 mb-10">
+              Join thousands of businesses that trust Midwest Shipment for their logistics needs.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center rounded-full bg-brand-500 px-10 py-4 text-lg font-semibold text-white shadow-lg shadow-brand-500/30 transition hover:bg-brand-400"
+              >
+                Get in Touch
+              </Link>
+              <Link
+                href="/services"
+                className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-10 py-4 text-lg font-semibold text-white transition hover:bg-white/20"
+              >
+                Explore Services
+              </Link>
+            </div>
+          </div>
+        </section>
+      <Testimonials />
+
       </main>
+
       <Footer />
-    </>
-  )
+    </div>
+  );
 }

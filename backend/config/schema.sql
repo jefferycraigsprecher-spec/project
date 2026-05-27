@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS customer_password_resets (
 CREATE TABLE IF NOT EXISTS shipments (
   id                INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   tracking_id       VARCHAR(20)  NOT NULL UNIQUE,
+  order_id          VARCHAR(50) DEFAULT NULL,
   customer_id       INT UNSIGNED,
   
   -- Sender
@@ -78,6 +79,19 @@ CREATE TABLE IF NOT EXISTS shipments (
   recipient_state   VARCHAR(100),
   recipient_country VARCHAR(100) NOT NULL DEFAULT 'USA',
   recipient_zip     VARCHAR(20),
+  
+  shipment_cost     DECIMAL(12,2),
+  clearance_cost    DECIMAL(12,2),
+  total_amount      DECIMAL(12,2),
+  payment_status    ENUM('pending','paid','partially_paid','refunded','to_pay') DEFAULT 'pending',
+  currency          VARCHAR(10) DEFAULT 'USD',
+  parcel_quantity   INT DEFAULT 1,
+  parcel_product    VARCHAR(255),
+  parcel_status     VARCHAR(100),
+  parcel_description TEXT,
+  parcel_shipping_cost DECIMAL(12,2),
+  parcel_total_cost DECIMAL(12,2),
+  parcel_items      JSON,
   
   -- Package
   description       TEXT,
@@ -237,6 +251,7 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 CREATE INDEX idx_shipments_tracking_id  ON shipments(tracking_id);
 CREATE INDEX idx_shipments_customer     ON shipments(customer_id);
 CREATE INDEX idx_shipments_status       ON shipments(status);
+CREATE INDEX idx_shipments_order_id     ON shipments(order_id);
 CREATE INDEX idx_tracking_events_ship   ON tracking_events(shipment_id);
 CREATE INDEX idx_activity_logs_ship     ON shipment_activity_logs(shipment_id);
 CREATE INDEX idx_media_shipment         ON shipment_media(shipment_id);

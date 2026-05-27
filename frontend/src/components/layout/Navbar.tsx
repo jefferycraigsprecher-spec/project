@@ -1,7 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Clock3, Mail, Package, Phone } from 'lucide-react'
+import Cookies from 'js-cookie'
+import { Clock3, Mail, Package, Phone, ShieldCheck } from 'lucide-react'
 
 const navItems = [
   { label: 'Home', href: '/' },
@@ -30,6 +32,12 @@ const handleLanguageChange = (value: string) => {
 }
 
 export default function Navbar() {
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    setIsAdmin(!!Cookies.get('msc_admin_token'))
+  }, [])
+
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur">
       <div className="border-b border-gray-100 bg-slate-950 text-white">
@@ -70,6 +78,14 @@ export default function Navbar() {
 
           <Link href="/contact" className="hidden rounded-none bg-slate-950 px-4 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-white transition-colors hover:bg-brand-500 sm:inline-flex">
             Request Quote
+          </Link>
+
+          <Link
+            href={isAdmin ? '/admin/dashboard' : '/admin/login'}
+            className="hidden rounded-none border border-slate-950 bg-white px-4 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-slate-950 transition-colors hover:border-brand-500 hover:text-brand-500 sm:inline-flex"
+          >
+            <ShieldCheck className="w-4 h-4 mr-2" />
+            {isAdmin ? 'Admin Portal' : 'Admin Login'}
           </Link>
 
           <div className="language-switcher shrink-0">

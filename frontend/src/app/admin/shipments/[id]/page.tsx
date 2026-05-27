@@ -42,7 +42,15 @@ export default function ShipmentDetailPage() {
       setEvents(data.events || [])
       setMedia(data.media || [])
       setLogs(data.logs || [])
+      const parsedParcelItems = data.shipment.parcel_items
+        ? typeof data.shipment.parcel_items === 'string'
+          ? JSON.parse(data.shipment.parcel_items)
+          : data.shipment.parcel_items
+        : []
+
       setForm({
+        order_id: data.shipment.order_id || '',
+        tracking_number: data.shipment.tracking_id || '',
         sender_name: data.shipment.sender_name || '',
         sender_email: data.shipment.sender_email || '',
         sender_phone: data.shipment.sender_phone || '',
@@ -59,6 +67,18 @@ export default function ShipmentDetailPage() {
         recipient_state: data.shipment.recipient_state || '',
         recipient_country: data.shipment.recipient_country || 'USA',
         recipient_zip: data.shipment.recipient_zip || '',
+        shipment_cost: data.shipment.shipment_cost ?? '',
+        clearance_cost: data.shipment.clearance_cost ?? '',
+        total_amount: data.shipment.total_amount ?? '',
+        payment_status: data.shipment.payment_status || 'pending',
+        currency: data.shipment.currency || 'USD',
+        parcel_quantity: data.shipment.parcel_quantity ?? '',
+        parcel_product: data.shipment.parcel_product || '',
+        parcel_status: data.shipment.parcel_status || '',
+        parcel_description: data.shipment.parcel_description || '',
+        parcel_shipping_cost: data.shipment.parcel_shipping_cost ?? '',
+        parcel_total_cost: data.shipment.parcel_total_cost ?? '',
+        parcel_items: parsedParcelItems,
         description: data.shipment.description || '',
         weight: data.shipment.weight ?? '',
         weight_unit: data.shipment.weight_unit || 'lbs',
@@ -90,6 +110,66 @@ export default function ShipmentDetailPage() {
     setForm((current) => ({ ...current, [field]: value }))
   }
 
+  const calculateParcelTotal = (item: any) => {
+    const qty = Number(item.qty || 0)
+    const shippingCost = Number(item.parcel_shipping_cost || 0)
+    const clearanceCost = Number(item.parcel_clearance_cost || 0)
+    return ((qty * (shippingCost + clearanceCost)) || 0).toFixed(2)
+  }
+
+  const updateParcelItem = (index: number, field: string, value: string) => {
+    setForm((current) => {
+      const items = Array.isArray(current.parcel_items) ? [...current.parcel_items] : []
+      const existing = items[index] || {}
+      const updated = { ...existing, [field]: value }
+
+      if (['qty', 'parcel_shipping_cost', 'parcel_clearance_cost'].includes(field)) {
+        updated.parcel_total_cost = calculateParcelTotal(updated)
+      }
+
+      items[index] = updated
+      return { ...current, parcel_items: items }
+    })
+  }
+
+  const addParcelItem = () => {
+    setForm((current) => ({
+      ...current,
+      parcel_items: [
+        ...(Array.isArray(current.parcel_items) ? current.parcel_items : []),
+        {
+          qty: 1,
+          product: '',
+          status: 'processing',
+          description: '',
+          parcel_shipping_cost: 0,
+          parcel_clearance_cost: 0,
+          parcel_total_cost: 0,
+        },
+      ],
+    }))
+  }
+
+  const removeParcelItem = (index: number) => {
+    setForm((current) => {
+      const items = Array.isArray(current.parcel_items) ? [...current.parcel_items] : []
+      items.splice(index, 1)
+      return { ...current, parcel_items: items }
+    })
+  }
+
+  const parcelQuantityTotal = Array.isArray(form.parcel_items)
+    ? form.parcel_items.reduce((sum: number, item: any) => sum + (Number(item.qty) || 0), 0)
+    : 0
+
+  const parcelShippingTotal = Array.isArray(form.parcel_items)
+    ? form.parcel_items.reduce((sum: number, item: any) => sum + ((Number(item.parcel_shipping_cost) || 0) * (Number(item.qty) || 0)), 0)
+    : 0
+
+  const parcelTotalCost = Array.isArray(form.parcel_items)
+    ? form.parcel_items.reduce((sum: number, item: any) => sum + (Number(item.parcel_total_cost) || 0), 0)
+    : 0
+
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setSaving(true)
@@ -99,6 +179,11 @@ export default function ShipmentDetailPage() {
         ...form,
         weight: form.weight ? Number(form.weight) : null,
         declared_value: form.declared_value ? Number(form.declared_value) : null,
+        shipment_cost: form.shipment_cost ? Number(form.shipment_cost) : null,
+        clearance_cost: form.clearance_cost ? Number(form.clearance_cost) : null,
+        total_amount: form.total_amount ? Number(form.total_amount) : null,
+        parcel_quantity: form.parcel_quantity ? Number(form.parcel_quantity) : null,
+        parcel_items: form.parcel_items || null,
       })
       toast.success('Shipment updated successfully.')
       await loadShipment()
@@ -190,6 +275,14 @@ export default function ShipmentDetailPage() {
                     <h2 className="text-lg font-bold text-navy-900">Core shipment details</h2>
                     <div className="mt-4 grid gap-4 md:grid-cols-2">
                       <label className="block">
+                        <span className="label">Tracking number</span>
+                        <input readOnly value={form.tracking_number || ''} className="input-field bg-slate-100" />
+                      </label>
+                      <label className="block">
+                        <span className="label">Order ID</span>
+                        <input readOnly value={form.order_id || ''} className="input-field bg-slate-100" />
+                      </label>
+                      <label className="block">
                         <span className="label">Service type</span>
                         <select value={form.service_type} onChange={(e) => handleFormChange('service_type', e.target.value)} className="input-field">
                           {serviceOptions.map((option) => <option key={option} value={option}>{option}</option>)}
@@ -231,6 +324,204 @@ export default function ShipmentDetailPage() {
                         </select>
                       </label>
                     </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-lg font-bold text-navy-900">Payment & parcel</h2>
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <label className="block">
+                        <span className="label">Payment status</span>
+                        <select value={form.payment_status || 'pending'} onChange={(e) => handleFormChange('payment_status', e.target.value)} className="input-field">
+                          <option value="pending">Pending</option>
+                          <option value="paid">Paid</option>
+                          <option value="partially_paid">Partially paid</option>
+                          <option value="refunded">Refunded</option>
+                          <option value="to_pay">To pay</option>
+                        </select>
+                      </label>
+                      <label className="block">
+                        <span className="label">Currency</span>
+                        <select value={form.currency || 'USD'} onChange={(e) => handleFormChange('currency', e.target.value)} className="input-field">
+                          <option value="USD">USD</option>
+                          <option value="EUR">EUR</option>
+                          <option value="GBP">GBP</option>
+                          <option value="NGN">NGN</option>
+                        </select>
+                      </label>
+                      <label className="block">
+                        <span className="label">Shipment cost</span>
+                        <input type="number" step="0.01" value={form.shipment_cost ?? ''} onChange={(e) => handleFormChange('shipment_cost', e.target.value)} className="input-field" />
+                      </label>
+                      <label className="block">
+                        <span className="label">Clearance cost</span>
+                        <input type="number" step="0.01" value={form.clearance_cost ?? ''} onChange={(e) => handleFormChange('clearance_cost', e.target.value)} className="input-field" />
+                      </label>
+                      <label className="block">
+                        <span className="label">Total amount</span>
+                        <input type="number" step="0.01" value={form.total_amount ?? ''} onChange={(e) => handleFormChange('total_amount', e.target.value)} className="input-field" />
+                      </label>
+                      <label className="block">
+                        <span className="label">Parcel quantity</span>
+                        <input type="number" min="1" value={form.parcel_quantity ?? ''} onChange={(e) => handleFormChange('parcel_quantity', e.target.value)} className="input-field" />
+                      </label>
+                      <label className="block">
+                        <span className="label">Parcel product</span>
+                        <input value={form.parcel_product || ''} onChange={(e) => handleFormChange('parcel_product', e.target.value)} className="input-field" />
+                      </label>
+                      <label className="block">
+                        <span className="label">Parcel status</span>
+                        <select value={form.parcel_status || ''} onChange={(e) => handleFormChange('parcel_status', e.target.value)} className="input-field">
+                          <option value="">Select status</option>
+                          <option value="processing">Processing</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="packed">Packed</option>
+                          <option value="shipped">Shipped</option>
+                          <option value="delivered">Delivered</option>
+                        </select>
+                      </label>
+                      <label className="block md:col-span-2">
+                        <span className="label">Parcel description</span>
+                        <input value={form.parcel_description || ''} onChange={(e) => handleFormChange('parcel_description', e.target.value)} className="input-field" />
+                      </label>
+                      <label className="block">
+                        <span className="label">Parcel shipping cost</span>
+                        <input type="number" step="0.01" value={form.parcel_shipping_cost ?? ''} onChange={(e) => handleFormChange('parcel_shipping_cost', e.target.value)} className="input-field" />
+                      </label>
+                      <label className="block">
+                        <span className="label">Parcel total cost</span>
+                        <input type="number" step="0.01" value={form.parcel_total_cost ?? ''} onChange={(e) => handleFormChange('parcel_total_cost', e.target.value)} className="input-field" />
+                      </label>
+                    </div>
+
+                    <div className="mt-6 rounded-3xl border border-slate-300 bg-slate-50 p-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <h3 className="font-semibold text-navy-900">Parcel items</h3>
+                          <p className="text-sm text-slate-600">Edit individual parcel rows and cost breakdown.</p>
+                        </div>
+                        <button type="button" onClick={addParcelItem} className="btn-outline">
+                          Add parcel item
+                        </button>
+                      </div>
+                      <div className="mt-4 overflow-x-auto">
+                        <table className="min-w-full border-collapse text-sm">
+                          <thead>
+                            <tr>
+                              <th className="border p-3 text-left">Qty</th>
+                              <th className="border p-3 text-left">Product</th>
+                              <th className="border p-3 text-left">Status</th>
+                              <th className="border p-3 text-left">Description</th>
+                              <th className="border p-3 text-left">Shipping cost</th>
+                              <th className="border p-3 text-left">Clearance cost</th>
+                              <th className="border p-3 text-left">Total cost</th>
+                              <th className="border p-3 text-left">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Array.isArray(form.parcel_items) && form.parcel_items.length > 0 ? (
+                              form.parcel_items.map((item: any, index: number) => (
+                                <tr key={index} className="even:bg-slate-100">
+                                  <td className="border p-2">
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      className="input-field"
+                                      value={item.qty ?? ''}
+                                      onChange={(e) => updateParcelItem(index, 'qty', e.target.value)}
+                                    />
+                                  </td>
+                                  <td className="border p-2">
+                                    <input
+                                      type="text"
+                                      className="input-field"
+                                      value={item.product ?? ''}
+                                      onChange={(e) => updateParcelItem(index, 'product', e.target.value)}
+                                    />
+                                  </td>
+                                  <td className="border p-2">
+                                    <select
+                                      className="input-field"
+                                      value={item.status ?? ''}
+                                      onChange={(e) => updateParcelItem(index, 'status', e.target.value)}
+                                    >
+                                      <option value="processing">Processing</option>
+                                      <option value="confirmed">Confirmed</option>
+                                      <option value="packed">Packed</option>
+                                      <option value="shipped">Shipped</option>
+                                      <option value="delivered">Delivered</option>
+                                    </select>
+                                  </td>
+                                  <td className="border p-2">
+                                    <input
+                                      type="text"
+                                      className="input-field"
+                                      value={item.description ?? ''}
+                                      onChange={(e) => updateParcelItem(index, 'description', e.target.value)}
+                                    />
+                                  </td>
+                                  <td className="border p-2">
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      className="input-field"
+                                      value={item.parcel_shipping_cost ?? ''}
+                                      onChange={(e) => updateParcelItem(index, 'parcel_shipping_cost', e.target.value)}
+                                    />
+                                  </td>
+                                  <td className="border p-2">
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      className="input-field"
+                                      value={item.parcel_clearance_cost ?? ''}
+                                      onChange={(e) => updateParcelItem(index, 'parcel_clearance_cost', e.target.value)}
+                                    />
+                                  </td>
+                                  <td className="border p-2">
+                                    <input
+                                      type="text"
+                                      className="input-field bg-slate-100"
+                                      value={item.parcel_total_cost ?? ''}
+                                      readOnly
+                                    />
+                                  </td>
+                                  <td className="border p-2">
+                                    <button type="button" onClick={() => removeParcelItem(index)} className="btn-outline">
+                                      Remove
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td className="border p-4 text-center" colSpan={8}>
+                                  No parcel items added.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm text-slate-700">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-3">
+                          <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Total quantity</p>
+                          <p className="mt-2 text-lg font-semibold text-navy-900">{parcelQuantityTotal}</p>
+                        </div>
+                        <div className="rounded-2xl border border-slate-200 bg-white p-3">
+                          <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Shipping total</p>
+                          <p className="mt-2 text-lg font-semibold text-navy-900">{form.currency || 'USD'} {parcelShippingTotal.toFixed(2)}</p>
+                        </div>
+                        <div className="rounded-2xl border border-slate-200 bg-white p-3">
+                          <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Parcel total</p>
+                          <p className="mt-2 text-lg font-semibold text-navy-900">{form.currency || 'USD'} {parcelTotalCost.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
                     <label className="mt-4 block">
                       <span className="label">Description</span>
                       <textarea value={form.description || ''} onChange={(e) => handleFormChange('description', e.target.value)} className="input-field min-h-28" />
