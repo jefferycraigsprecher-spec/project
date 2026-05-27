@@ -2,20 +2,23 @@ import { Star } from 'lucide-react'
 
 const reviews = [
   {
-    name: 'Monique Pete',
-    role: 'Logistics Manager, Martrax Inc.',
-    text: 'Midwest Shipment Company greatly exceeds industry standards with clear communication, reliable handling, and fast coordination.',
+    avatar: '/images/testimonials/avatar4.jpg',
+    name: 'Midwest Shipment Client',
+    role: 'Logistics Manager',
+    text: 'Midwest Shipment greatly exceeds industry standards with clear communication, reliable handling, and fast coordination.',
     rating: 5,
   },
   {
-    name: 'Steve Anderson',
-    role: 'President/Owner, Duplication Factory',
-    text: 'More than once, Midwest Shipment Company has saved the day by delivering our cargo on time with short notice.',
+    avatar: '/images/testimonials/avatar5.jpg',
+    name: 'Midwest Shipment Client',
+    role: 'Operations Director',
+    text: 'More than once, Midwest Shipment has saved the day by delivering our cargo on time with short notice.',
     rating: 5,
   },
   {
-    name: 'Cathy Beckman',
-    role: 'Logistics Team, Oxea Chemicals',
+    avatar: '/images/testimonials/avatar6.jpg',
+    name: 'Midwest Shipment Client',
+    role: 'Supply Chain Lead',
     text: 'Their communication is outstanding and the coordination is always reliable from pickup through delivery.',
     rating: 5,
   },
@@ -31,18 +34,23 @@ export default function ReviewsSection() {
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {reviews.map((review) => (
-            <div key={review.name} className="border border-gray-100 bg-white p-6 shadow-[0_18px_50px_-38px_rgba(15,23,42,0.45)]">
-              <div className="flex gap-1 text-brand-500">
-                {Array.from({ length: review.rating }).map((_, index) => (
-                  <Star key={index} className="h-4 w-4 fill-current" />
-                ))}
+          {reviews.map((review, i) => (
+            <div key={i} className="border border-gray-100 bg-white p-6 shadow-[0_18px_50px_-38px_rgba(15,23,42,0.45)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <img src={review.avatar} alt={`avatar-${i}`} className="h-10 w-10 rounded-full object-cover" />
+                  <div>
+                    <p className="font-semibold text-navy-900">{review.name}</p>
+                    <p className="text-sm text-gray-500">{review.role}</p>
+                  </div>
+                </div>
+                <div className="flex gap-1 text-brand-500">
+                  {Array.from({ length: review.rating }).map((_, index) => (
+                    <Star key={index} className="h-4 w-4 fill-current" />
+                  ))}
+                </div>
               </div>
               <p className="mt-4 text-sm leading-7 text-gray-600">"{review.text}"</p>
-              <div className="mt-5 border-t border-gray-100 pt-4">
-                <p className="font-semibold text-navy-900">{review.name}</p>
-                <p className="text-sm text-gray-500">{review.role}</p>
-              </div>
             </div>
           ))}
         </div>

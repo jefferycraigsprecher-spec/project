@@ -3,21 +3,24 @@ import React from 'react'
 const reviews = [
   {
     quote:
-      "Given my past experiences with other logistics companies, I can say without exception that the services provided by ZGG Shipping Logistics greatly exceed industry standards.",
-    name: 'Monique Pete',
-    role: 'Logistics Manager, Martrax Inc.',
+      "Given my past experiences with other logistics companies, I can say without exception that the services provided by Midwest Shipment greatly exceed industry standards.",
+    avatar: '/images/testimonials/avatar1.jpg',
+    name: 'Midwest Shipment Client',
+    role: 'Logistics Manager',
   },
   {
     quote:
-      "More than once, ZGG Shipping Logistics has 'saved the day', delivering our cargo on time with short notice. They have won my gratitude and loyalty with their 'can do' approach.",
-    name: 'Steve Anderson',
-    role: 'President/Owner, Duplication Factory',
+      "More than once, Midwest Shipment has 'saved the day', delivering our cargo on time with short notice. They have won my gratitude and loyalty with their 'can do' approach.",
+    avatar: '/images/testimonials/avatar2.jpg',
+    name: 'Midwest Shipment Client',
+    role: 'Operations Lead',
   },
   {
     quote:
-      "I am very pleased with the service provided by ZGG Shipping Logistics. Their communication is outstanding and we get a high level of service.",
-    name: 'Cathy Beckman',
-    role: 'Logistics Team, Oxea Chemicals',
+      "I am very pleased with the service provided by Midwest Shipment. Their communication is outstanding and we get a high level of service.",
+    avatar: '/images/testimonials/avatar3.jpg',
+    name: 'Midwest Shipment Client',
+    role: 'Supply Chain Coordinator',
   },
 ]
 
@@ -30,13 +33,16 @@ export default function Testimonials() {
       </div>
 
       <div className="grid gap-6 sm:grid-cols-3">
-        {reviews.map((r) => (
-          <blockquote key={r.name} className="rounded-[1.5rem] border border-gray-100 bg-white p-6 text-left shadow-sm">
+        {reviews.map((r, i) => (
+          <blockquote key={i} className="rounded-[1.5rem] border border-gray-100 bg-white p-6 text-left shadow-sm">
+            <div className="flex items-center gap-4 mb-4">
+              <img src={r.avatar} alt={`avatar-${i}`} className="h-12 w-12 rounded-full object-cover" />
+              <div>
+                <p className="font-semibold text-navy-900">{r.name}</p>
+                <p className="text-sm text-gray-500">{r.role}</p>
+              </div>
+            </div>
             <p className="text-sm leading-7 text-gray-700">“{r.quote}”</p>
-            <footer className="mt-4">
-              <p className="font-semibold text-navy-900">{r.name}</p>
-              <p className="text-sm text-gray-500">{r.role}</p>
-            </footer>
           </blockquote>
         ))}
       </div>
