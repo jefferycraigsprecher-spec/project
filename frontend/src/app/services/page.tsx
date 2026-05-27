@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Testimonials from '@/components/sections/Testimonials';
+import PartnersCarousel from '@/components/sections/PartnersCarousel';
 import { ArrowRight, CheckCircle } from 'lucide-react';
 
 const services = [
@@ -124,19 +125,10 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        {/* Partners Marquee */}
-        <section className="partner-marquee">
+        {/* Partners Carousel */}
+        <section>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="partner-track">
-              <img src="/images/partners/partner-01.png" alt="partner-01" />
-              <img src="/images/partners/partner-02.png" alt="partner-02" />
-              <img src="/images/partners/partner-03.png" alt="partner-03" />
-              <img src="/images/partners/partner-04.png" alt="partner-04" />
-              <img src="/images/partners/partner-05.png" alt="partner-05" />
-              <img src="/images/partners/partner-01.png" alt="partner-01" />
-              <img src="/images/partners/partner-02.png" alt="partner-02" />
-              <img src="/images/partners/partner-03.png" alt="partner-03" />
-            </div>
+            <PartnersCarousel />
           </div>
         </section>
 

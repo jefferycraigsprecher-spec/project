@@ -213,7 +213,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .hero-content h1{
-    font-size: 65px;
+  font-size: 56px;
     font-weight: 700;
     margin-bottom: 20px;
 }
@@ -278,13 +278,10 @@ h1, h2, h3, h4, h5 {
   animation: marquee 20s linear infinite; 
 }
 .partner-track img{ 
-  height: 48px; 
-  opacity: 0.9; 
-  filter: grayscale(20%); 
+  height: 56px; 
+  opacity: 0.95; 
+  filter: grayscale(12%); 
 }
-@keyframes marquee{ 
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
-}
+
 
 .partner-track:hover{ animation-play-state: paused; }
