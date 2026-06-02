@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Cookies from 'js-cookie'
@@ -12,6 +12,12 @@ export default function CustomerLoginPage() {
   const router = useRouter()
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (Cookies.get('msc_customer_token')) {
+      router.replace('/customer/dashboard')
+    }
+  }, [router])
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()

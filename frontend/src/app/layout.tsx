@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Barlow, Oswald } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import SupportChatWidget from '@/components/ui/SupportChatWidget'
+import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import './globals.css'
 
 const barlow = Barlow({
@@ -33,7 +35,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${barlow.variable} ${oswald.variable}`}>
       <body className="font-sans antialiased">
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+        <ServiceWorkerRegistrar />
         <SupportChatWidget />
         <Toaster
           position="top-right"

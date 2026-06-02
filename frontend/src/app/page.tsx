@@ -1,65 +1,64 @@
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import Testimonials from '@/components/sections/Testimonials';
-import PartnersCarousel from '@/components/sections/PartnersCarousel';
-import Link from 'next/link';
-import { Search, Clock, ArrowRight, Award, MapPin, Users } from 'lucide-react';
+import Link from 'next/link'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import Testimonials from '@/components/sections/Testimonials'
+import HeroVideoSlider from '@/components/sections/HeroVideoSlider'
+import { Search, ArrowRight, Truck, Ship, Warehouse, Globe, ShieldCheck, Package } from 'lucide-react'
 
 const services = [
   {
-    title: 'Air Freight',
-    description: 'IATA-endorsed air forwarding for urgent, cross-border shipments with high visibility.',
-    image: '/images/services/service1.jpg',
+    icon: Truck,
+    title: 'Air & Road Freight',
+    description: 'Seamless global freight movement with fast, efficient air and ground logistics.',
   },
   {
-    title: 'Sea / Ocean Freight',
-    description: 'FCL, LCL, and door-to-door ocean transport backed by professional port handling.',
-    image: '/images/services/service2.jpg',
+    icon: Ship,
+    title: 'Ocean Freight',
+    description: 'Reliable FCL and LCL ocean shipping supported by full customs and port management.',
   },
   {
-    title: 'Road Transportation',
-    description: 'National and regional transport with reliable last-mile delivery coverage.',
-    image: '/images/services/service3.jpg',
-  },
-  {
-    title: 'Diplomatic Logistics',
-    description: 'Secure and discreet handling for sensitive materials, documents, and diplomatic cargo.',
-    image: '/images/services/service4.jpg',
-  },
-  {
+    icon: Warehouse,
     title: 'Warehousing',
-    description: 'Flexible storage solutions with real-time inventory visibility and secure staging.',
-    image: '/images/services/service5.jpg',
+    description: 'Smart storage solutions with secure facilities and inventory visibility.',
   },
   {
-    title: 'Packaging & Storage',
-    description: 'Protective packaging, consolidation, and cargo insurance for every shipment type.',
-    image: '/images/services/service6.jpg',
-  },
-];
-
-const highlights = [
-  {
-    icon: MapPin,
+    icon: Globe,
     title: 'Global Coverage',
-    detail: 'US, Europe, and worldwide freight lanes with trusted partner networks.',
+    description: 'A worldwide carrier network built for cross-border shipments and regional distribution.',
   },
   {
-    icon: Clock,
-    title: 'Express Delivery',
-    detail: 'Rapid transit options for time-sensitive parcels and urgent cargo.',
+    icon: ShieldCheck,
+    title: 'Secure Logistics',
+    description: 'Protected handling for sensitive cargo, documents, and high-value freight.',
   },
   {
-    icon: Award,
-    title: 'Proven Reliability',
-    detail: 'Industry-leading performance and secure handling for every shipment.',
+    icon: Package,
+    title: 'Fulfillment & Packaging',
+    description: 'Custom packaging, consolidation, and insured delivery for every shipment.',
+  },
+]
+
+const stats = [
+  { label: 'Delivered packages', value: '2.1M+' },
+  { label: 'Trusted partners', value: '500+' },
+  { label: 'Global coverage', value: '160 countries' },
+  { label: 'Customer rating', value: '4.9/5' },
+]
+
+const trustItems = [
+  {
+    title: 'Accelerated dispatch',
+    description: 'Move faster with intelligent routing and proactive shipment coordination.',
   },
   {
-    icon: Users,
-    title: '24/7 Support',
-    detail: 'Dedicated logistics support and customer service around the clock.',
+    title: 'Safe, compliant cargo',
+    description: 'Regulated, insured logistics for sensitive and high-value deliveries.',
   },
-];
+  {
+    title: 'Enterprise-grade tracking',
+    description: 'Live tracking and transparent updates for every leg of the journey.',
+  },
+]
 
 export default function MidwestHome() {
   return (
@@ -67,136 +66,189 @@ export default function MidwestHome() {
       <Navbar />
 
       <main>
-        <section className="relative overflow-hidden">
-          <video
-            className="absolute inset-0 h-full w-full object-cover hero-video"
-            src="/videos/airplane_takeoff.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster="/images/hero-poster.png"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-slate-950/60 to-black/75 overlay" />
-          <div className="relative mx-auto max-w-7xl px-4 py-28 sm:px-6 lg:px-8 lg:py-32">
-            <div className="max-w-3xl">
-              <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-brand-100">
-                Fastest & Reliable Courier Service
-              </span>
-              <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-7xl">
-                Ship smarter with a trusted logistics partner for air, sea, road and secure delivery.
-              </h1>
-              <p className="mt-6 text-lg leading-8 text-slate-200 sm:text-xl">
-                Global freight management, transparent tracking, and dependable delivery built for modern shipping teams.
-              </p>
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                <Link href="/track" className="inline-flex items-center justify-center rounded-full bg-brand-500 px-8 py-4 text-sm font-semibold text-white shadow-lg shadow-brand-500/30 transition hover:bg-brand-400">
-                  Track Shipment
-                </Link>
-                <Link href="/contact" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-8 py-4 text-sm font-semibold text-white transition hover:bg-white/10">
-                  Get a Quote
-                </Link>
+        <HeroVideoSlider />
+
+      <section className="mx-auto max-w-7xl px-4 pb-24 pt-20 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/80 p-0 shadow-2xl backdrop-blur-xl">
+            <div className="grid gap-5">
+              <div className="relative overflow-hidden rounded-[2rem]">
+                <video
+                  className="h-full w-full object-cover"
+                  src="/videos/airplane_takeoff.mp4"
+                  poster="/images/hero-poster.png"
+                  controls
+                  muted
+                  playsInline
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent" />
+                <div className="absolute bottom-8 left-8 right-8 rounded-[1.75rem] border border-white/10 bg-black/50 p-6 backdrop-blur-xl text-white">
+                  <p className="text-sm uppercase tracking-[0.35em] text-brand-300">Hero Video</p>
+                  <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">A behind-the-scenes look at our logistics operations.</h2>
+                  <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
+                    Watch how Midwest Shipment keeps every package moving safely and on time with premium handling, real-time updates, and global network coordination.
+                  </p>
+                </div>
+              </div>
+
+              <div className="relative overflow-hidden rounded-[1.75rem] bg-slate-950/80 shadow-inner">
+                <img src="/images/hero-poster.png" alt="Logistics preview" className="h-64 w-full rounded-[1.75rem] object-cover" />
+                <div className="absolute inset-0 rounded-[1.75rem] bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-6 text-white">
+                  <p className="text-sm uppercase tracking-[0.35em] text-slate-300">Hero Image</p>
+                  <p className="mt-2 text-lg font-semibold">A polished still frame from our logistics operations.</p>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="mt-14 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {[
-                { label: 'Deliveries per year', value: '101,273+' },
-                { label: 'Countries served', value: '160+' },
-                { label: 'On-time rate', value: '99.8%' },
-                { label: '24/7 support', value: 'Always' },
-              ].map((item) => (
-                <div key={item.label} className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-                  <p className="text-sm uppercase tracking-[0.28em] text-slate-300">{item.label}</p>
-                  <p className="mt-4 text-3xl font-semibold text-white">{item.value}</p>
+          <div className="space-y-8 rounded-[2rem] border border-white/10 bg-white/5 p-10 shadow-2xl backdrop-blur-xl">
+            <div>
+              <p className="section-subtitle text-brand-400">Watch and discover</p>
+              <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Closing the gap between shipping and visibility.</h2>
+              <p className="mt-6 text-slate-300 leading-8">
+                This hero section brings the energy to the page with a cinematic view of our transport and fulfillment workflow. It’s the perfect companion for the premium white card layout and fills the blank space with motion.
+              </p>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/80 p-6">
+                <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Fast Dispatch</p>
+                <p className="mt-3 text-lg font-semibold text-white">Real-time cargo movement across air, sea, and road.</p>
+              </div>
+              <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/80 p-6">
+                <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Secure Delivery</p>
+                <p className="mt-3 text-lg font-semibold text-white">Premium protection and tracking for every package.</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <Link href="/about" className="inline-flex items-center justify-center rounded-full bg-brand-500 px-6 py-4 text-sm font-semibold text-white transition hover:bg-brand-400">
+                Learn more
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+              <Link href="/contact" className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-6 py-4 text-sm font-semibold text-white transition hover:bg-white/20">
+                Contact us
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+        <section className="mx-auto max-w-7xl px-4 pb-24 pt-20 sm:px-6 lg:px-8">
+          <div className="grid gap-8 xl:grid-cols-[0.95fr_0.95fr]">
+            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
+              <p className="section-subtitle">Track smarter</p>
+              <h2 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">Instant shipment tracking in one sleek dashboard.</h2>
+              <p className="mt-6 max-w-2xl text-slate-300 leading-8">
+                Enter your tracking number and get end-to-end visibility with the same premium logistics experience trusted by enterprise teams.
+              </p>
+              <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+                <input
+                  type="text"
+                  placeholder="Enter tracking number"
+                  className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-5 py-4 text-white placeholder:text-slate-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                />
+                <button className="inline-flex min-w-[170px] items-center justify-center rounded-3xl bg-brand-500 px-6 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-brand-400">
+                  <Search className="mr-2 h-4 w-4" />
+                  Track Shipment
+                </button>
+              </div>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              {stats.map((stat) => (
+                <div key={stat.label} className="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                  <p className="text-sm uppercase tracking-[0.28em] text-slate-400">{stat.label}</p>
+                  <p className="mt-4 text-3xl font-bold text-white">{stat.value}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="relative z-10 -mt-24 px-4 pb-24 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl rounded-[2rem] bg-white/95 p-8 shadow-2xl backdrop-blur-xl ring-1 ring-slate-900/5 sm:p-10">
-            <div className="grid gap-8 lg:grid-cols-[1.3fr_0.9fr] lg:items-center">
+        <section className="bg-slate-950 px-4 pb-24 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl grid gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+            <div className="relative overflow-hidden rounded-[2rem] bg-slate-900/50 p-8 shadow-2xl backdrop-blur-xl">
+              <img src="/images/services/service-right-1.jpg" alt="Logistics overview" className="h-full min-h-[420px] w-full rounded-[1.75rem] object-cover" />
+              <div className="absolute inset-0 rounded-[1.75rem] bg-gradient-to-tr from-black/50 via-black/20 to-black/0" />
+            </div>
+            <div className="space-y-8">
               <div>
-                <p className="section-subtitle text-brand-600">Track & Trace Your Shipment</p>
-                <h2 className="mt-3 text-3xl font-bold text-slate-950 sm:text-4xl">
-                  Get real-time updates on every milestone.
-                </h2>
-                <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
-                  Enter your tracking number to see the latest location, delivery ETA, and status updates from dispatch to destination.
+                <p className="section-subtitle text-brand-400">Why choose Midwest</p>
+                <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Modern logistics for brands that need speed and trust.</h2>
+                <p className="mt-6 text-slate-300 leading-8">
+                  We combine premium cargo handling, secure supply chain workflows, and transparent communication so your shipments move reliably from origin to destination.
                 </p>
               </div>
-              <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder="Enter tracking number"
-                    className="min-w-0 flex-1 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
-                  />
-                  <button className="inline-flex items-center justify-center rounded-2xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-brand-600/20 hover:bg-brand-500">
-                    <Search className="mr-2 h-4 w-4" />
-                    Track
-                  </button>
-                </div>
+              <div className="grid gap-6 sm:grid-cols-2">
+                {trustItems.map((item) => (
+                  <div key={item.title} className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                    <h3 className="text-xl font-semibold text-white">{item.title}</h3>
+                    <p className="mt-3 text-slate-300 leading-7">{item.description}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <p className="section-subtitle text-brand-600">Our Services</p>
-            <h2 className="mt-3 text-3xl font-bold text-slate-950 sm:text-4xl">Comprehensive logistics for every cargo type.</h2>
-            <p className="mt-4 text-base leading-7 text-slate-600 mx-auto max-w-2xl">
-              From diplomatic secure shipments to warehousing and express transport, our courier services are equipped for global freight operations.
-            </p>
+          <div className="rounded-[2rem] border border-white/10 bg-white/5 p-10 shadow-2xl backdrop-blur-xl">
+            <div className="grid gap-10 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+              <div>
+                <p className="section-subtitle text-brand-600">Services</p>
+                <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Built for air, sea, road, and secure cargo flows.</h2>
+                <p className="mt-4 text-slate-300 leading-8">
+                  Our platform helps teams manage complex logistics with speed, visibility, and premium support whenever it matters most.
+                </p>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                {services.map((service) => {
+                  const Icon = service.icon
+                  return (
+                    <div key={service.title} className="rounded-[1.75rem] border border-white/10 bg-slate-950/80 p-6 backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-brand-400/30">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/10 text-brand-300">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <h3 className="mt-5 text-xl font-semibold text-white">{service.title}</h3>
+                      <p className="mt-3 text-slate-300 leading-7">{service.description}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           </div>
+        </section>
 
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {services.map((service) => (
-              <div key={service.title} className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-                <div className="mb-6 overflow-hidden rounded-2xl h-40">
-                  <img src={service.image} alt={service.title} className="h-full w-full object-cover" />
-                </div>
-                <h3 className="mt-6 text-xl font-semibold text-slate-950">{service.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-slate-600">{service.description}</p>
-                <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-brand-600">
-                  Learn More <ArrowRight className="h-4 w-4" />
+        <section className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
+          <div className="rounded-[2rem] border border-white/10 bg-white/5 p-10 shadow-2xl backdrop-blur-xl">
+            <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+              <div>
+                <p className="section-subtitle text-brand-600">Contact Midwest Shipment</p>
+                <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Reach our logistics team anytime.</h2>
+                <p className="mt-4 text-slate-300 leading-8">
+                  For quotes, tracking help, or urgent shipping questions, call or email our customer care specialists now.
+                </p>
+              </div>
+
+              <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/80 p-8 shadow-xl">
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Customer Support</p>
+                    <p className="mt-3 text-2xl font-semibold text-white">+1 (239) 746-8728</p>
+                  </div>
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Email</p>
+                    <a href="mailto:info.midwestshipment@gmail.com" className="mt-3 block text-2xl font-semibold text-brand-500 hover:text-brand-400">
+                      info.midwestshipment@gmail.com
+                    </a>
+                  </div>
+                  <div className="rounded-[1.5rem] bg-white/5 p-5">
+                    <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Need fast help?</p>
+                    <p className="mt-3 text-slate-300 leading-7">
+                      Available 24/7 for urgent imports, exports, customs support, and same-day cargo coordination.
+                    </p>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Partners Carousel */}
-        <section>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <PartnersCarousel />
-          </div>
-        </section>
-
-        <section className="bg-slate-950 px-4 pb-24 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl text-center">
-            <p className="section-subtitle text-brand-400">Why Choose Us</p>
-            <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">A trusted partner for fast, secure and visible courier services.</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-              We combine modern fleet operations, intelligent tracking, and professional handling to give you confidence at every shipment stage.
-            </p>
-
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-              {highlights.map((highlight) => {
-                const Icon = highlight.icon;
-                return (
-                  <div key={highlight.title} className="rounded-[2rem] border border-white/10 bg-white/5 p-8 text-left shadow-sm backdrop-blur-xl">
-                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-brand-300">
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <h3 className="mt-5 text-lg font-semibold text-white">{highlight.title}</h3>
-                    <p className="mt-3 text-sm leading-7 text-slate-300">{highlight.detail}</p>
-                  </div>
-                );
-              })}
             </div>
           </div>
         </section>
@@ -206,5 +258,5 @@ export default function MidwestHome() {
 
       <Footer />
     </div>
-  );
+  )
 }

@@ -122,15 +122,18 @@ CREATE TABLE IF NOT EXISTS shipments (
   
   -- Location
   current_location  VARCHAR(255),
+  current_status    VARCHAR(100) DEFAULT 'processing',
   
   -- Notes
   notes             TEXT,
   admin_notes       TEXT,
+  invoice_sent      TINYINT DEFAULT 0,
   
   -- Meta
   created_by        INT UNSIGNED,
   created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  last_updated      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
   FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
@@ -142,6 +145,20 @@ CREATE TABLE IF NOT EXISTS tracking_events (
   status        VARCHAR(100)        NOT NULL,
   location      VARCHAR(255),
   description   TEXT,
+  event_time    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_by    INT UNSIGNED,
+  created_at    TIMESTAMP           DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (shipment_id) REFERENCES shipments(id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by)  REFERENCES admins(id)    ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ─── TRACKING UPDATES TABLE ─────────────────
+CREATE TABLE IF NOT EXISTS tracking_updates (
+  id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  shipment_id   INT UNSIGNED        NOT NULL,
+  status        VARCHAR(100)        NOT NULL,
+  location      VARCHAR(255),
+  remarks       TEXT,
   event_time    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_by    INT UNSIGNED,
   created_at    TIMESTAMP           DEFAULT CURRENT_TIMESTAMP,

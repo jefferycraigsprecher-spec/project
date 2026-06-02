@@ -2,7 +2,6 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Testimonials from '@/components/sections/Testimonials';
-import PartnersCarousel from '@/components/sections/PartnersCarousel';
 import { ArrowRight, CheckCircle } from 'lucide-react';
 
 const services = [
@@ -122,13 +121,6 @@ export default function ServicesPage() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Partners Carousel */}
-        <section>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <PartnersCarousel />
           </div>
         </section>
 

@@ -34,6 +34,8 @@ export interface Shipment {
   estimated_delivery?: string
   actual_delivery?: string
   current_location?: string
+  current_status?: string
+  last_updated?: string
   
   notes?: string
   admin_notes?: string
@@ -42,6 +44,17 @@ export interface Shipment {
   created_by_name?: string
   created_at: string
   updated_at: string
+}
+
+export interface TrackingEvent {
+  id: number
+  shipment_id: number
+  status: string
+  location?: string
+  description?: string
+  remarks?: string
+  event_time: string
+  created_by_name?: string
 }
 
 export interface TrackingEvent {

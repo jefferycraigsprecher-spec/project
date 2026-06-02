@@ -1,8 +1,34 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Testimonials from '@/components/sections/Testimonials';
+import HeroVideoSlider from '@/components/sections/HeroVideoSlider';
 import { Award, Users, Globe, CheckCircle, MapPin, Phone, Mail, Clock } from 'lucide-react';
 import Link from 'next/link';
+
+const aboutSlides = [
+  {
+    title: 'Built on trusted logistics and premium customer care.',
+    subtitle: 'For 15 years, we’ve guided brands and businesses through secure international freight, local delivery, and strategic supply chain solutions.',
+    video: '/videos/airplane_takeoff.mp4',
+    poster: '/images/hero-poster.png',
+    image: '/images/services/service1.jpg',
+    primaryLabel: 'Meet the Team',
+    primaryLink: '/about',
+    secondaryLabel: 'Contact Sales',
+    secondaryLink: '/contact',
+  },
+  {
+    title: 'Our mission is to make complex shipping effortless.',
+    subtitle: 'We combine advanced tracking, dedicated support, and global carrier partnerships to keep every shipment moving with confidence.',
+    video: '/videos/airplane_takeoff.mp4',
+    poster: '/images/hero-poster.png',
+    image: '/images/services/service2.jpg',
+    primaryLabel: 'View Services',
+    primaryLink: '/services',
+    secondaryLabel: 'Get Started',
+    secondaryLink: '/contact',
+  },
+]
 
 export default function AboutPage() {
   return (
@@ -11,18 +37,7 @@ export default function AboutPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative overflow-hidden pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="text-center mb-16">
-              <h1 className="text-5xl sm:text-6xl font-bold mb-6">
-                About Midwest Shipment
-              </h1>
-              <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-                Leading the logistics revolution with innovative courier solutions, transparent tracking, and unwavering commitment to excellence.
-              </p>
-            </div>
-          </div>
-        </section>
+        <HeroVideoSlider slides={aboutSlides} />
 
         {/* Mission & Vision */}
         <section className="px-4 sm:px-6 lg:px-8 pb-24">

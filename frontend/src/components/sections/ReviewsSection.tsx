@@ -3,21 +3,21 @@ import { Star } from 'lucide-react'
 const reviews = [
   {
     avatar: '/images/testimonials/avatar4.jpg',
-    name: 'Midwest Shipment Client',
+    name: 'Noah Walker',
     role: 'Logistics Manager',
     text: 'Midwest Shipment greatly exceeds industry standards with clear communication, reliable handling, and fast coordination.',
     rating: 5,
   },
   {
     avatar: '/images/testimonials/avatar5.jpg',
-    name: 'Midwest Shipment Client',
+    name: 'Ava Morgan',
     role: 'Operations Director',
     text: 'More than once, Midwest Shipment has saved the day by delivering our cargo on time with short notice.',
     rating: 5,
   },
   {
     avatar: '/images/testimonials/avatar6.jpg',
-    name: 'Midwest Shipment Client',
+    name: 'Liam Chen',
     role: 'Supply Chain Lead',
     text: 'Their communication is outstanding and the coordination is always reliable from pickup through delivery.',
     rating: 5,

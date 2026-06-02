@@ -307,7 +307,7 @@ exports.getShipment = async (req, res) => {
     delete shipment.admin_notes;
 
     const [events] = await pool.execute(
-      'SELECT * FROM tracking_events WHERE shipment_id = ? ORDER BY event_time DESC',
+      'SELECT *, remarks AS description FROM tracking_updates WHERE shipment_id = ? ORDER BY event_time DESC',
       [id]
     );
     const [documents] = await pool.execute(

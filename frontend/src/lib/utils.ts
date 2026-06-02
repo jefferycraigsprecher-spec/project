@@ -37,6 +37,21 @@ export const SERVICE_LABELS: Record<string, string> = {
   freight: 'Freight',
 }
 
+export const STATUS_DESCRIPTIONS: Record<string, string> = {
+  processing: 'Shipment is being processed.',
+  picked_up: 'Parcel has been collected from sender.',
+  in_transit: 'Shipment is moving through the logistics network.',
+  customs_clearance: 'Shipment is undergoing customs clearance.',
+  arrived_at_facility: 'Shipment has arrived at a carrier facility.',
+  out_for_delivery: 'Shipment is out for delivery.',
+  delivered: 'Package has been successfully delivered.',
+  failed_delivery: 'Delivery attempt failed. A follow-up action is required.',
+}
+
+export function getTrackingDescription(status: string) {
+  return STATUS_DESCRIPTIONS[status] || 'Shipment status updated.'
+}
+
 export function getStatusColor(status: string) {
   const colors: Record<string, string> = {
     processing: 'bg-yellow-100 text-yellow-800 border-yellow-200',

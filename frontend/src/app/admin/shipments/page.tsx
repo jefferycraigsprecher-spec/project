@@ -17,20 +17,26 @@ export default function AdminShipmentsPage() {
   const router = useRouter()
   const [shipments, setShipments] = useState<Shipment[]>([])
   const [loading, setLoading] = useState(true)
+  const [lookupLoading, setLookupLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [status, setStatus] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [search, setSearch] = useState('')
+  const [trackingLookup, setTrackingLookup] = useState('')
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setSearch(searchTerm)
+      setSearch(searchTerm.trim())
       setPage(1)
     }, 300)
 
     return () => clearTimeout(timer)
   }, [searchTerm])
+
+  useEffect(() => {
+    setPage(1)
+  }, [status])
 
   const fetchShipments = async () => {
     setLoading(true)
@@ -47,9 +53,36 @@ export default function AdminShipmentsPage() {
       setShipments(res.data.shipments || [])
       setTotal(res.data.total || 0)
     } catch (error) {
+      // If unauthenticated, the API interceptor will redirect to login.
+      // Avoid showing a brief error toast in that case.
+      // @ts-ignore
+      if (error?.response?.status === 401) return
       toast.error('Unable to load shipments.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleLookupTracking = async () => {
+    const trackingId = trackingLookup.trim()
+    if (!trackingId) {
+      toast.error('Enter a tracking ID to open a shipment.')
+      return
+    }
+
+    setLookupLoading(true)
+    try {
+      const result = await api.get(`/shipments/tracking/${encodeURIComponent(trackingId)}`)
+      const shipmentId = result.data.shipment?.id
+      if (!shipmentId) {
+        toast.error('Shipment not found.')
+        return
+      }
+      router.push(`/admin/shipments/${shipmentId}`)
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Shipment not found.')
+    } finally {
+      setLookupLoading(false)
     }
   }
 
@@ -74,7 +107,7 @@ export default function AdminShipmentsPage() {
         </div>
 
         <div className="card p-4">
-          <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+          <div className="grid gap-3 xl:grid-cols-[1fr_1fr_220px]">
             <label className="relative block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -94,6 +127,28 @@ export default function AdminShipmentsPage() {
                 ))}
               </select>
             </label>
+            <div className="grid gap-3">
+              <label className="block">
+                <span className="label">Open by tracking ID</span>
+                <div className="flex gap-2">
+                  <input
+                    value={trackingLookup}
+                    onChange={(e) => setTrackingLookup(e.target.value)}
+                    placeholder="Enter tracking code"
+                    className="input-field flex-1"
+                    onKeyDown={(e) => e.key === 'Enter' && handleLookupTracking()}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleLookupTracking}
+                    disabled={lookupLoading}
+                    className="btn-secondary whitespace-nowrap"
+                  >
+                    {lookupLoading ? 'Opening...' : 'Open'}
+                  </button>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
 

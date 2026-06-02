@@ -1,11 +1,14 @@
 (async () => {
   const API = 'http://localhost:5000/api';
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@midwestshipment.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123456';
+
   try {
     console.log('Logging in as seeded admin...');
     const loginRes = await fetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'devadmin@midwestshipment.com', password: 'DevAdmin@123' })
+      body: JSON.stringify({ email: adminEmail, password: adminPassword })
     });
     const loginJson = await loginRes.json();
     if (!loginJson.success) throw new Error('Login failed: ' + JSON.stringify(loginJson));
@@ -50,9 +53,11 @@
     console.log('Track response success:', trackJson.success);
     console.log('Shipment status from track response:', trackJson.shipment?.status);
 
-    process.exit(0);
+    process.exitCode = 0;
+    return;
   } catch (err) {
     console.error('E2E test error:', err);
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 })();

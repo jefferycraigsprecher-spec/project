@@ -58,9 +58,6 @@ export default function AdminDashboardPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/admin/shipments/new" className="btn-primary">
-              <Plus className="w-4 h-4" /> Create shipment
-            </Link>
             <Link href="/admin/shipments" className="btn-secondary">
               View shipments <ArrowRight className="w-4 h-4" />
             </Link>
@@ -174,10 +171,6 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <div className="mt-4 space-y-3">
-                    <Link href="/admin/shipments/new" className="flex items-center justify-between rounded-none border border-gray-200 p-3 text-sm font-semibold text-navy-900 hover:border-brand-500">
-                      <span>Create a new shipment</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
                     <Link href="/admin/shipments" className="flex items-center justify-between rounded-none border border-gray-200 p-3 text-sm font-semibold text-navy-900 hover:border-brand-500">
                       <span>Review shipment queue</span>
                       <ArrowRight className="w-4 h-4" />

@@ -11,7 +11,7 @@ async function createSample() {
     );
 
     await pool.execute(
-      `INSERT INTO tracking_events (shipment_id, status, location, description, created_by) VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO tracking_updates (shipment_id, status, location, remarks, created_by) VALUES (?, ?, ?, ?, ?)`,
       [res.insertId, 'Processing', 'Columbus, Ohio', 'Shipment created for testing', null]
     );
 

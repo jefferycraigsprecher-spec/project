@@ -35,14 +35,16 @@ const emptyForm = {
   payment_method: 'Card',
   currency: 'USD',
   parcel_quantity: '1',
+  parcel_category: 'Electronics',
   parcel_product: '',
-  parcel_status: 'processing',
   parcel_description: '',
-  parcel_shipping_cost: '',
-  parcel_total_cost: '',
+  fragile: false,
   description: '',
   weight: '',
-  weight_unit: 'lbs',
+  weight_unit: 'kg',
+  rate_per_kg: '5.00',
+  tax: '',
+  discount: '',
   dimensions: '',
   package_type: 'box',
   declared_value: '',
@@ -52,6 +54,7 @@ const emptyForm = {
   ship_date: '',
   estimated_delivery: '',
   current_location: 'Columbus, Ohio',
+  current_location_status: 'Pending',
   notes: '',
   admin_notes: '',
 }
@@ -69,13 +72,14 @@ export default function CreateShipmentPage() {
     {
       qty: '1',
       product: '',
-      status: 'order_confirmed',
       description: '',
-      parcel_shipping_cost: '0',
-      parcel_clearance_cost: '0',
-      parcel_total_cost: '0',
+      category: '',
     },
   ])
+  const [currentLocationUpdate, setCurrentLocationUpdate] = useState({
+    date: '',
+    time: '',
+  })
   const postalCodeLookup: Record<string, string> = {
     'US-OH-Columbus': '43004',
     'US-FL-North Fort Myers': '33903',
@@ -87,6 +91,25 @@ export default function CreateShipmentPage() {
 
   const handleChange = (field: string, value: string) => {
     setForm((current) => ({ ...current, [field]: value }))
+  }
+
+  const handleCurrentLocationUpdateChange = (field: string, value: string) => {
+    setCurrentLocationUpdate((current) => ({ ...current, [field]: value }))
+  }
+
+  const addCurrentLocationUpdate = () => {
+    if (!currentLocationUpdate.date || !currentLocationUpdate.time) {
+      toast.error('Please select date and time before adding the update.')
+      return
+    }
+
+    const updateText = `${currentLocationUpdate.date} ${currentLocationUpdate.time}`
+    setForm((current) => ({
+      ...current,
+      notes: current.notes ? `${current.notes}\n${updateText}` : updateText,
+    }))
+    setCurrentLocationUpdate({ date: '', time: '' })
+    toast.success('Current location update added.')
   }
 
   useEffect(() => {
@@ -110,11 +133,19 @@ export default function CreateShipmentPage() {
 
   const generateTrackingNumber = () => `ZG-${Math.floor(100000000 + Math.random() * 900000000)}`
 
+  const generateOrderId = () => `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+
   useEffect(() => {
     if (!form.tracking_number) {
       setForm((current) => ({ ...current, tracking_number: generateTrackingNumber() }))
     }
   }, [form.tracking_number])
+
+  useEffect(() => {
+    if (!form.order_id) {
+      setForm((current) => ({ ...current, order_id: generateOrderId() }))
+    }
+  }, [form.order_id])
 
   useEffect(() => {
     if (!form.tracking_number) return
@@ -210,36 +241,142 @@ export default function CreateShipmentPage() {
     setForm((current) => ({
       ...current,
       recipient_city: value,
-      recipient_postal_code: postalCodeLookup[postalKey] || current.recipient_postal_code,
+      recipient_postal_code: postalKey in postalCodeLookup ? postalCodeLookup[postalKey] : current.recipient_postal_code,
     }))
   }
 
-  const computeTotalAmount = (shipmentCost: number, clearanceCost: number) => {
-    return (shipmentCost + clearanceCost).toFixed(2)
+  const getCountryName = (countryCode: string) => {
+    const country = countries.find((item) => item.isoCode === countryCode)
+    return country?.name || countryCode || 'Unknown country'
   }
+
+  const currentRouteOptions = [
+    {
+      value: `Country route - ${getCountryName(form.sender_country)} → ${getCountryName(form.recipient_country)}`,
+      label: `Country route - ${getCountryName(form.sender_country)} → ${getCountryName(form.recipient_country)}`,
+    },
+    {
+      value: `Pickup - ${form.sender_address || form.sender_city || 'Origin location'}`,
+      label: `Pickup - ${form.sender_address || form.sender_city || 'Origin location'}`,
+    },
+    {
+      value: `${form.sender_city || 'Origin city'} - Sorting and Processing`,
+      label: `${form.sender_city || 'Origin city'} - Sorting and Processing`,
+    },
+    {
+      value: 'Regional Hub - Package consolidation',
+      label: 'Regional Hub - Package consolidation',
+    },
+    {
+      value: 'Transit Hub - Distribution center',
+      label: 'Transit Hub - Distribution center',
+    },
+    {
+      value: 'International route - Between countries',
+      label: 'International route - Between countries',
+    },
+    {
+      value: 'Local Delivery Hub - Final mile sort',
+      label: 'Local Delivery Hub - Final mile sort',
+    },
+    {
+      value: `${form.recipient_city || 'Destination city'} - Delivery facility`,
+      label: `${form.recipient_city || 'Destination city'} - Delivery facility`,
+    },
+    {
+      value: `Recipient address - ${form.recipient_address || form.recipient_city || 'Destination'}`,
+      label: `Recipient address - ${form.recipient_address || form.recipient_city || 'Destination'}`,
+    },
+  ]
+
+  const selectedCurrentRoute = currentRouteOptions.some((option) => option.value === form.current_location)
+    ? form.current_location
+    : ''
+
+  useEffect(() => {
+    const destination = [form.recipient_address, form.recipient_city, form.recipient_state, form.recipient_country]
+      .filter(Boolean)
+      .join(', ')
+    if (!destination) return
+
+    setForm((current) => {
+      const autoRoutePrefix = 'Route:'
+      const source = [current.sender_city || current.sender_state || current.sender_country]
+        .filter(Boolean)
+        .join(', ')
+      const routeText = source ? `Route: ${source} → ${destination}` : `Route: ${destination}`
+
+      if (!current.current_location || current.current_location.startsWith(autoRoutePrefix)) {
+        if (current.current_location === routeText) return current
+        return { ...current, current_location: routeText }
+      }
+
+      return current
+    })
+  }, [form.recipient_address, form.recipient_city, form.recipient_state, form.recipient_country, form.sender_city, form.sender_state, form.sender_country])
+
+  const computeTotalAmount = (
+    baseFee: number,
+    weightKg: number,
+    ratePerKg: number,
+    clearanceFee: number,
+    taxAmount: number,
+    discountAmount: number
+  ) => {
+    const weightCost = weightKg * ratePerKg
+    return Math.max(0, baseFee + weightCost + clearanceFee + taxAmount - discountAmount).toFixed(2)
+  }
+
+  const updateCostTotals = (updates: Record<string, any>) => {
+    setForm((current) => {
+      const next = { ...current, ...updates }
+      const baseFee = parseFloat(next.shipment_cost || '0')
+      const weightKg = parseFloat(next.weight || '0')
+      const ratePerKg = parseFloat(next.rate_per_kg || '0')
+      const clearanceFee = parseFloat(next.clearance_cost || '0')
+      const taxAmount = parseFloat(next.tax || '0')
+      const discountAmount = parseFloat(next.discount || '0')
+      return {
+        ...next,
+        total_amount: computeTotalAmount(baseFee, weightKg, ratePerKg, clearanceFee, taxAmount, discountAmount),
+      }
+    })
+  }
+
+  // Recalculate totals when parcel rows change
+  useEffect(() => {
+    updateCostTotals({})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parcelItems])
 
   const handleShipmentCostChange = (value: string) => {
     const numeric = value.replace(/[^0-9.]/g, '')
-    const shipmentCost = parseFloat(numeric || '0')
-    const clearance = parseFloat(form.clearance_cost || '0')
-    setForm((current) => ({
-      ...current,
-      shipment_cost: numeric,
-      total_amount: computeTotalAmount(shipmentCost, clearance),
-    }))
+    updateCostTotals({ shipment_cost: numeric })
   }
 
   const handleClearanceCostChange = (value: string) => {
     const numeric = value.replace(/[^0-9.]/g, '')
-    const shipmentCost = parseFloat(form.shipment_cost || '0')
-    const clearance = parseFloat(numeric || '0')
-    const totalAmount = computeTotalAmount(shipmentCost, clearance)
+    updateCostTotals({ clearance_cost: numeric })
+  }
 
-    setForm((current) => ({
-      ...current,
-      clearance_cost: numeric,
-      total_amount: totalAmount,
-    }))
+  const handleWeightChange = (value: string) => {
+    const numeric = value.replace(/[^0-9.]/g, '')
+    updateCostTotals({ weight: numeric })
+  }
+
+  const handleRatePerKgChange = (value: string) => {
+    const numeric = value.replace(/[^0-9.]/g, '')
+    updateCostTotals({ rate_per_kg: numeric })
+  }
+
+  const handleTaxChange = (value: string) => {
+    const numeric = value.replace(/[^0-9.]/g, '')
+    updateCostTotals({ tax: numeric })
+  }
+
+  const handleDiscountChange = (value: string) => {
+    const numeric = value.replace(/[^0-9.]/g, '')
+    updateCostTotals({ discount: numeric })
   }
 
   const handlePaymentStatusChange = (value: string) => {
@@ -256,26 +393,11 @@ export default function CreateShipmentPage() {
     }))
   }
 
-  const calculateParcelTotal = (parcel: {
-    qty: string
-    parcel_shipping_cost: string
-    parcel_clearance_cost: string
-  }) => {
-    const q = parseFloat(parcel.qty || '0')
-    const shipping = parseFloat(parcel.parcel_shipping_cost || '0')
-    const clearance = parseFloat(parcel.parcel_clearance_cost || '0')
-    return ((q * (shipping + clearance)) || 0).toFixed(2)
-  }
-
   const updateParcelItem = (index: number, field: string, value: string) => {
     setParcelItems((current) =>
       current.map((item, idx) => {
         if (idx !== index) return item
-        const updatedItem = { ...item, [field]: value }
-        if (['qty', 'parcel_shipping_cost', 'parcel_clearance_cost'].includes(field)) {
-          updatedItem.parcel_total_cost = calculateParcelTotal(updatedItem)
-        }
-        return updatedItem
+        return { ...item, [field]: value }
       })
     )
   }
@@ -286,11 +408,8 @@ export default function CreateShipmentPage() {
       {
         qty: '1',
         product: '',
-        status: 'order_confirmed',
         description: '',
-        parcel_shipping_cost: '0',
-        parcel_clearance_cost: '0',
-        parcel_total_cost: '0',
+        category: '',
       },
     ])
   }
@@ -300,8 +419,8 @@ export default function CreateShipmentPage() {
   }
 
   const parcelQuantityTotal = parcelItems.reduce((sum, item) => sum + (parseFloat(item.qty || '0') || 0), 0)
-  const parcelTotalCost = parcelItems.reduce((sum, item) => sum + (parseFloat(item.parcel_total_cost || '0') || 0), 0).toFixed(2)
-  const parcelShippingTotal = parcelItems.reduce((sum, item) => sum + ((parseFloat(item.parcel_shipping_cost || '0') || 0) * (parseFloat(item.qty || '0') || 0)), 0).toFixed(2)
+  const parcelShippingTotal = parseFloat(form.shipment_cost || '0')
+  const parcelTotalCost = parseFloat(form.total_amount || '0')
 
   const formatMoney = (value: number | string) => {
     const amount = typeof value === 'string' ? parseFloat(value || '0') : value || 0
@@ -317,23 +436,31 @@ export default function CreateShipmentPage() {
     setSubmitting(true)
 
     try {
+      const weightCharge = Number(form.weight || 0) * Number(form.rate_per_kg || 0)
+      const originLocation = [form.sender_address, form.sender_city, form.sender_state, form.sender_country]
+        .filter(Boolean)
+        .join(', ')
+      const destinationLocation = [form.recipient_address, form.recipient_city, form.recipient_state, form.recipient_country]
+        .filter(Boolean)
+        .join(', ')
+
       const payload = {
         ...form,
+        tracking_id: form.tracking_number,
         weight: form.weight ? Number(form.weight) : null,
         declared_value: form.declared_value ? Number(form.declared_value) : null,
         shipment_cost: form.shipment_cost ? Number(form.shipment_cost) : null,
-        clearance_cost: form.clearance_cost ? Number(form.clearance_cost) : null,
         total_amount: form.total_amount ? Number(form.total_amount) : null,
         amount_paid: form.amount_paid ? Number(form.amount_paid) : null,
-        shipping_cost: form.shipment_cost ? Number(form.shipment_cost) : null,
-        parcel_quantity: form.parcel_quantity ? Number(form.parcel_quantity) : null,
+        quantity: form.parcel_quantity ? Number(form.parcel_quantity) : null,
         payment_method: form.payment_method || 'Card',
+        parcel_category: form.parcel_category || '',
+        description: form.description || form.parcel_description || null,
         parcel_items: parcelItems.map((item) => ({
-          ...item,
+          product: item.product,
           qty: Number(item.qty),
-          parcel_shipping_cost: Number(item.parcel_shipping_cost),
-          parcel_clearance_cost: Number(item.parcel_clearance_cost),
-          parcel_total_cost: Number(item.parcel_total_cost),
+          description: item.description,
+          category: (item as any).category || '',
         })),
         sender_zip: form.sender_postal_code,
         recipient_zip: form.recipient_postal_code,
@@ -341,20 +468,31 @@ export default function CreateShipmentPage() {
 
       const response = await api.post('/shipments', payload)
       const trackingId = response.data?.tracking_id
-      const returnedOrderId = response.data?.order_id
+      const orderId = response.data?.order_id || form.order_id
 
       if (typeof window !== 'undefined' && trackingId) {
         const receiptPayload = {
           ...payload,
           tracking_id: trackingId,
-          order_id: returnedOrderId || payload.order_id || '',
+          order_id: orderId,
           receiptDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          shipping_cost: payload.shipment_cost,
+          base_fee: payload.shipment_cost,
+          weight_charge: Number(weightCharge.toFixed(2)),
+          insurance: 0,
+          fuel_charge: 0,
+          customs: 0,
+          origin_location: originLocation,
+          destination_location: destinationLocation,
         }
 
         const invoicePayload = {
           ...receiptPayload,
           booking_mode: form.booking_mode,
           payment_method: form.payment_method,
+          payment_status: form.payment_status,
+          order_id: orderId,
+          service_type: form.service_type,
         }
 
         window.localStorage.setItem('msc_admin_receipt_data', JSON.stringify(receiptPayload))
@@ -363,9 +501,9 @@ export default function CreateShipmentPage() {
 
       toast.success('Shipment created successfully.')
       if (trackingId) {
-        router.push(`/invoice?tracking=${encodeURIComponent(trackingId)}`)
+        await router.push('/admin/shipments')
       } else {
-        router.push('/admin/shipments')
+        await router.push('/admin/shipments')
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Unable to create shipment.')
@@ -380,7 +518,7 @@ export default function CreateShipmentPage() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="section-subtitle">Shipment creation</p>
-            <h1 className="section-title text-3xl">Create new shipment</h1>
+            <h1 className="section-title text-3xl">Add new shipment</h1>
             <p className="mt-2 text-sm text-gray-600 max-w-2xl">
               Build the shipment record with sender and recipient details, parcel costs, payment status and tracking.
               The summary panel keeps totals, barcode, and parcel counts visible as you work.
@@ -551,8 +689,8 @@ export default function CreateShipmentPage() {
               <section>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-lg font-bold text-navy-900">Shipment details</h2>
-                    <p className="mt-1 text-sm text-slate-600">Complete the core shipment settings and delivery preferences.</p>
+                    <h2 className="text-lg font-bold text-navy-900">Delivery options</h2>
+                    <p className="mt-1 text-sm text-slate-600">Select delivery type, pickup date, and expected delivery.</p>
                   </div>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -565,9 +703,14 @@ export default function CreateShipmentPage() {
                     </div>
                     <input type="text" value={form.tracking_number} readOnly className="input-field bg-slate-100" />
                   </label>
-                  <label className="block">
-                    <span className="label">Order ID</span>
-                    <input value={form.order_id} onChange={(e) => handleChange('order_id', e.target.value)} className="input-field" />
+                  <label className="block md:col-span-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="label">Order ID</span>
+                      <button type="button" onClick={() => setForm((current) => ({ ...current, order_id: generateOrderId() }))} className="text-sm font-semibold text-brand-600 hover:text-brand-800">
+                        Regenerate
+                      </button>
+                    </div>
+                    <input type="text" value={form.order_id} readOnly className="input-field bg-slate-100" />
                   </label>
                   <label className="block">
                     <span className="label">Booking mode</span>
@@ -578,54 +721,148 @@ export default function CreateShipmentPage() {
                     </select>
                   </label>
                   <label className="block">
-                    <span className="label">Service type</span>
+                    <span className="label">Delivery type</span>
                     <select value={form.service_type} onChange={(e) => handleChange('service_type', e.target.value)} className="input-field">
                       <option value="standard">Standard</option>
                       <option value="express">Express</option>
-                      <option value="overnight">Overnight</option>
-                      <option value="freight">Freight</option>
+                      <option value="same_day">Same Day</option>
                     </select>
                   </label>
                   <label className="block">
-                    <span className="label">Package type</span>
+                    <span className="label">Pickup date</span>
+                    <input type="date" value={form.ship_date} onChange={(e) => handleChange('ship_date', e.target.value)} className="input-field" />
+                  </label>
+                  <label className="block">
+                    <span className="label">Expected delivery date</span>
+                    <input type="date" value={form.estimated_delivery} onChange={(e) => handleChange('estimated_delivery', e.target.value)} className="input-field" />
+                  </label>
+                </div>
+              </section>
+
+              <section>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold text-navy-900">Parcel details</h2>
+                    <p className="mt-1 text-sm text-slate-600">Add category, dimensions, quantity, and fragility for the parcel.</p>
+                  </div>
+                </div>
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <label className="block">
+                    <span className="label">Parcel category</span>
+                    <select value={form.parcel_category} onChange={(e) => handleChange('parcel_category', e.target.value)} className="input-field">
+                      <option value="">Select Category</option>
+                      <option value="Electronics">Electronics</option>
+                      <option value="Documents">Documents</option>
+                      <option value="Jewelries">Jewelries</option>
+                      <option value="Clothes">Clothes</option>
+                      <option value="Food">Food</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="label">Quantity</span>
+                    <input type="number" value={form.parcel_quantity} min="1" onChange={(e) => handleChange('parcel_quantity', e.target.value)} className="input-field" />
+                  </label>
+                  <label className="block">
+                    <span className="label">Weight (kg)</span>
+                    <input type="number" value={form.weight} onChange={(e) => handleWeightChange(e.target.value)} className="input-field" placeholder="0" />
+                  </label>
+                  <label className="block">
+                    <span className="label">Weight cost</span>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-600">{form.currency}</span>
+                      <input type="text" value={formatMoney(parseFloat(form.weight || '0') * parseFloat(form.rate_per_kg || '0'))} readOnly className="input-field pl-12 bg-slate-100" />
+                    </div>
+                  </label>
+                  <label className="block">
+                    <span className="label">Packaging type</span>
                     <select value={form.package_type} onChange={(e) => handleChange('package_type', e.target.value)} className="input-field">
                       <option value="box">Box</option>
                       <option value="envelope">Envelope</option>
-                      <option value="pallet">Pallet</option>
                       <option value="crate">Crate</option>
+                      <option value="pallet">Pallet</option>
                       <option value="tube">Tube</option>
                     </select>
                   </label>
                   <label className="block">
+                    <span className="label">Dimensions (L × W × H)</span>
+                    <input value={form.dimensions} onChange={(e) => handleChange('dimensions', e.target.value)} placeholder="e.g. 40x30x20" className="input-field" />
+                  </label>
+                  <label className="block">
                     <span className="label">Declared value</span>
-                    <input type="number" value={form.declared_value} onChange={(e) => handleChange('declared_value', e.target.value)} className="input-field" />
+                    <div className="relative">
+                      <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-600">{form.currency}</span>
+                      <input type="text" value={form.declared_value} onChange={(e) => handleChange('declared_value', e.target.value)} className="input-field pl-12" />
+                    </div>
+                  </label>
+                  <label className="block flex items-center gap-3">
+                    <div>
+                      <span className="label">Fragile?</span>
+                      <p className="text-sm text-slate-500">Mark if the parcel is fragile</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={!!form.fragile}
+                      onChange={(e) => setForm((current) => ({ ...current, fragile: e.target.checked }))}
+                      className="h-5 w-5"
+                    />
+                  </label>
+                  <label className="block md:col-span-2">
+                    <span className="label">Parcel description</span>
+                    <textarea value={form.parcel_description} onChange={(e) => handleChange('parcel_description', e.target.value)} className="input-field min-h-24" />
+                  </label>
+                </div>
+              </section>
+
+              <section>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold text-navy-900">Shipping cost</h2>
+                    <p className="mt-1 text-sm text-slate-600">Auto-calculate total cost from base fee, weight, tax and discount.</p>
+                  </div>
+                </div>
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <label className="block">
+                    <span className="label">Base shipping fee</span>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-600">{form.currency}</span>
+                      <input type="text" value={form.shipment_cost} onChange={(e) => handleShipmentCostChange(e.target.value)} className="input-field pl-12" />
+                    </div>
                   </label>
                   <label className="block">
-                    <span className="label">Weight</span>
-                    <input type="number" value={form.weight} onChange={(e) => handleChange('weight', e.target.value)} className="input-field" placeholder="0" />
+                    <span className="label">Fuel Charge</span>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-600">{form.currency}</span>
+                      <input type="text" value={form.rate_per_kg} onChange={(e) => handleRatePerKgChange(e.target.value)} className="input-field pl-12" />
+                    </div>
                   </label>
                   <label className="block">
-                    <span className="label">Weight unit</span>
-                    <select value={form.weight_unit} onChange={(e) => handleChange('weight_unit', e.target.value)} className="input-field">
-                      <option value="lbs">lbs</option>
-                      <option value="kg">kg</option>
-                    </select>
+                    <span className="label">Weight cost</span>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-600">{form.currency}</span>
+                      <input type="text" value={formatMoney(parseFloat(form.weight || '0') * parseFloat(form.rate_per_kg || '0'))} readOnly className="input-field pl-12 bg-slate-100" />
+                    </div>
                   </label>
                   <label className="block">
-                    <span className="label">Dimensions</span>
-                    <input value={form.dimensions} onChange={(e) => handleChange('dimensions', e.target.value)} placeholder="e.g. 12x8x6 in" className="input-field" />
+                    <span className="label">Tax</span>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-600">{form.currency}</span>
+                      <input type="text" value={form.tax} onChange={(e) => handleTaxChange(e.target.value)} className="input-field pl-12" />
+                    </div>
                   </label>
                   <label className="block">
-                    <span className="label">Dispatch date</span>
-                    <input type="date" value={form.ship_date} onChange={(e) => handleChange('ship_date', e.target.value)} className="input-field" />
+                    <span className="label">Discount</span>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-600">{form.currency}</span>
+                      <input type="text" value={form.discount} onChange={(e) => handleDiscountChange(e.target.value)} className="input-field pl-12" />
+                    </div>
                   </label>
                   <label className="block">
-                    <span className="label">Delivery date</span>
-                    <input type="date" value={form.estimated_delivery} onChange={(e) => handleChange('estimated_delivery', e.target.value)} className="input-field" />
-                  </label>
-                  <label className="block">
-                    <span className="label">Current location</span>
-                    <input value={form.current_location} onChange={(e) => handleChange('current_location', e.target.value)} className="input-field" />
+                    <span className="label">Total cost</span>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-600">{form.currency}</span>
+                      <input type="text" value={formatMoney(form.total_amount)} readOnly className="input-field pl-12 bg-slate-100" />
+                    </div>
                   </label>
                 </div>
               </section>
@@ -639,21 +876,21 @@ export default function CreateShipmentPage() {
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                   <label className="block">
-                    <span className="label">Currency</span>
-                    <select value={form.currency} onChange={(e) => handleCurrencyChange(e.target.value)} className="input-field">
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
-                      <option value="GBP">GBP</option>
-                      <option value="NGN">NGN</option>
-                    </select>
-                  </label>
-                  <label className="block">
                     <span className="label">Payment method</span>
                     <select value={form.payment_method} onChange={(e) => handleChange('payment_method', e.target.value)} className="input-field">
                       <option value="Card">Card</option>
                       <option value="Bank Transfer">Bank Transfer</option>
                       <option value="Cash">Cash</option>
                       <option value="Wallet">Wallet</option>
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="label">Currency</span>
+                    <select value={form.currency} onChange={(e) => handleCurrencyChange(e.target.value)} className="input-field">
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                      <option value="NGN">NGN</option>
                     </select>
                   </label>
                   <label className="block">
@@ -665,6 +902,18 @@ export default function CreateShipmentPage() {
                       <option value="to_pay">To Pay</option>
                       <option value="refunded">Refunded</option>
                     </select>
+                  </label>
+                  <label className="block">
+                    <span className="label">Clearance fee</span>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-600">{form.currency}</span>
+                      <input
+                        type="text"
+                        value={form.clearance_cost}
+                        onChange={(e) => handleClearanceCostChange(e.target.value)}
+                        className="input-field pl-12"
+                      />
+                    </div>
                   </label>
                   <label className="block">
                     <span className="label">Amount paid</span>
@@ -686,18 +935,6 @@ export default function CreateShipmentPage() {
                         type="text"
                         value={form.shipment_cost}
                         onChange={(e) => handleShipmentCostChange(e.target.value)}
-                        className="input-field pl-12"
-                      />
-                    </div>
-                  </label>
-                  <label className="block">
-                    <span className="label">Clearance cost</span>
-                    <div className="relative">
-                      <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-600">{form.currency}</span>
-                      <input
-                        type="text"
-                        value={form.clearance_cost}
-                        onChange={(e) => handleClearanceCostChange(e.target.value)}
                         className="input-field pl-12"
                       />
                     </div>
@@ -724,13 +961,9 @@ export default function CreateShipmentPage() {
                     <thead>
                       <tr>
                         <th className="border p-3 text-left">QTY</th>
-                        <th className="border p-3 text-left">Product</th>
-                        <th className="border p-3 text-left">Status</th>
                         <th className="border p-3 text-left">Description</th>
-                        <th className="border p-3 text-left">Shipping</th>
-                        <th className="border p-3 text-left">Clearance</th>
-                        <th className="border p-3 text-left">Total</th>
-                        <th className="border p-3 text-left">Action</th>
+                        <th className="border p-3 text-left">Category</th>
+                        <th className="border p-3 text-left">Delete</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -740,26 +973,18 @@ export default function CreateShipmentPage() {
                             <input type="number" className="input-field" value={item.qty} min="1" onChange={(e) => updateParcelItem(index, 'qty', e.target.value)} />
                           </td>
                           <td className="border p-2">
-                            <input type="text" className="input-field" value={item.product} onChange={(e) => updateParcelItem(index, 'product', e.target.value)} />
-                          </td>
-                          <td className="border p-2">
-                            <select className="input-field" value={item.status} onChange={(e) => updateParcelItem(index, 'status', e.target.value)}>
-                              <option value="order_confirmed">Order Confirmed</option>
-                              <option value="pending">Pending</option>
-                              <option value="delivered">Delivered</option>
-                            </select>
-                          </td>
-                          <td className="border p-2">
                             <input type="text" className="input-field" value={item.description} onChange={(e) => updateParcelItem(index, 'description', e.target.value)} />
                           </td>
                           <td className="border p-2">
-                            <input type="number" className="input-field" value={item.parcel_shipping_cost} min="0" onChange={(e) => updateParcelItem(index, 'parcel_shipping_cost', e.target.value)} />
-                          </td>
-                          <td className="border p-2">
-                            <input type="number" className="input-field" value={item.parcel_clearance_cost} min="0" onChange={(e) => updateParcelItem(index, 'parcel_clearance_cost', e.target.value)} />
-                          </td>
-                          <td className="border p-2">
-                            <input type="text" className="input-field bg-slate-100" value={item.parcel_total_cost} readOnly />
+                            <select className="input-field" value={(item as any).category || ''} onChange={(e) => updateParcelItem(index, 'category', e.target.value)}>
+                              <option value="">Select</option>
+                              <option>Electronics</option>
+                              <option>Documents</option>
+                              <option>Jewelries</option>
+                              <option>Clothes</option>
+                              <option>Food</option>
+                              <option>Other</option>
+                            </select>
                           </td>
                           <td className="border p-2">
                             <button type="button" onClick={() => removeParcelItem(index)} className="btn-outline">Remove</button>
@@ -775,11 +1000,77 @@ export default function CreateShipmentPage() {
               </section>
 
               <section>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="block">
-                    <span className="label">Description</span>
-                    <textarea value={form.description} onChange={(e) => handleChange('description', e.target.value)} className="input-field min-h-28" />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold text-navy-900">CURRENT LOCATION</h2>
+                    <p className="mt-1 text-sm text-slate-600">Track the route leading to the delivery address and the current shipment status.</p>
+                  </div>
+                </div>
+                <div className="mt-5 grid gap-4 md:grid-cols-4">
+                  <label className="block md:col-span-4">
+                    <span className="label">Delivery route</span>
+                    <select
+                      value={selectedCurrentRoute}
+                      onChange={(e) => handleChange('current_location', e.target.value)}
+                      className="input-field"
+                    >
+                      <option value="">Select a route stage</option>
+                      {currentRouteOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-sm text-slate-500">Choose the current route description that matches the shipment’s progress to delivery.</p>
                   </label>
+                  <label className="block">
+                    <span className="label">Current location</span>
+                    <input value={form.current_location} onChange={(e) => handleChange('current_location', e.target.value)} className="input-field" />
+                    <p className="mt-1 text-sm text-slate-500">Route leading to the delivery address is auto-generated once a recipient address is selected.</p>
+                  </label>
+                  <label className="block">
+                    <span className="label">Status</span>
+                    <select value={form.current_location_status} onChange={(e) => handleChange('current_location_status', e.target.value)} className="input-field">
+                      <option value="Pending">Pending</option>
+                      <option value="Processing">Processing</option>
+                      <option value="Shipment Created">Shipment Created</option>
+                      <option value="Picked Up">Picked Up</option>
+                      <option value="In Transit">In Transit</option>
+                      <option value="At Sorting Facility">At Sorting Facility</option>
+                      <option value="Custom Clearance">Custom Clearance</option>
+                      <option value="Out for Delivery">Out for Delivery</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Failed Delivery">Failed Delivery</option>
+                      <option value="On Hold">On Hold</option>
+                      <option value="Returned">Returned</option>
+                    </select>
+                    <p className="mt-1 text-sm text-slate-500">Use this dropdown to set the shipment's current status.</p>
+                  </label>
+                  <label className="block">
+                    <span className="label">Date</span>
+                    <input
+                      type="date"
+                      value={currentLocationUpdate.date}
+                      onChange={(e) => handleCurrentLocationUpdateChange('date', e.target.value)}
+                      className="input-field"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="label">Time</span>
+                    <input
+                      type="time"
+                      value={currentLocationUpdate.time}
+                      onChange={(e) => handleCurrentLocationUpdateChange('time', e.target.value)}
+                      className="input-field"
+                    />
+                  </label>
+                  
+                  
+                </div>
+              </section>
+
+              <section>
+                <div className="mt-4">
                   <label className="block">
                     <span className="label">Admin notes</span>
                     <textarea value={form.admin_notes} onChange={(e) => handleChange('admin_notes', e.target.value)} className="input-field min-h-28" />
@@ -789,7 +1080,7 @@ export default function CreateShipmentPage() {
 
               <div className="flex flex-wrap gap-3">
                 <button type="submit" disabled={submitting} className="btn-primary">
-                  {submitting ? 'Saving...' : 'Create shipment'}
+                  {submitting ? 'Saving...' : 'Add shipment'}
                 </button>
                 <button type="button" onClick={() => router.push('/admin/shipments')} className="btn-outline">
                   Cancel
@@ -832,7 +1123,7 @@ export default function CreateShipmentPage() {
                   <span>{form.currency} {formatMoney(form.shipment_cost)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-slate-600">
-                  <span>Clearance cost</span>
+                  <span>Clearance fee</span>
                   <span>{form.currency} {formatMoney(form.clearance_cost)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-slate-600">

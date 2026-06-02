@@ -61,6 +61,7 @@ app.use('/api/shipments', require('./routes/shipments'));
 app.use('/api/customers', require('./routes/customers'));
 app.use('/api/contact',   require('./routes/contact'));
 app.use('/api/support',   require('./routes/support'));
+app.use('/barcodes', require('./routes/barcodes'));
 
 // ── HEALTH CHECK ──────────────────────────────
 app.get('/api/health', (req, res) => {
