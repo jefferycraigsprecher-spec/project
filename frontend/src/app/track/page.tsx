@@ -12,6 +12,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import api from '@/lib/api'
 import { STATUS_LABELS, SERVICE_LABELS, formatDate, formatDateTime, getTrackingDescription } from '@/lib/utils'
 import { AlertCircle, CalendarDays, Clock3, MapPin, Package, Search, ShieldCheck, UserRound, Info } from 'lucide-react'
+import TrackingResult from '@/components/TrackingResult'
 import type { Shipment, TrackingEvent } from '@/types'
 
 const statusFlow = [
@@ -142,26 +143,50 @@ function TrackingContent() {
       router.replace(`/track?${query.toString()}`)
     }
 
+    // UX: show immediate loading state and clear previous data/messages
     setLoading(true)
     setError('')
     setResult(null)
 
-    try {
-      const res = await api.get(`/shipments/track/${code}`)
-      setResult({ shipment: res.data.shipment, events: res.data.events || [] })
-      
-      // Auto-scroll to results after data is loaded
-      setTimeout(() => {
-        const resultsElement = document.getElementById('tracking-results')
-        if (resultsElement) {
-          resultsElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }
-      }, 100)
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Tracking details were not found.')
-    } finally {
-      setLoading(false)
+    // Fetch with a small retry/backoff strategy to handle transient network issues
+    const maxAttempts = 3
+    let attempt = 0
+    let lastError: any = null
+
+    while (attempt < maxAttempts) {
+      try {
+        attempt += 1
+        const res = await api.get(`/shipments/track/${code}`)
+        setResult({ shipment: res.data.shipment, events: res.data.events || [] })
+
+        // Auto-scroll to results after data is loaded (improves perceived speed)
+        setTimeout(() => {
+          const resultsElement = document.getElementById('tracking-results')
+          if (resultsElement) {
+            resultsElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        }, 100)
+
+        lastError = null
+        break
+      } catch (err: any) {
+        lastError = err
+        // If client error (4xx) don't retry
+        const status = err?.response?.status
+        if (status && status >= 400 && status < 500) break
+
+        // small backoff before retrying
+        await new Promise((r) => setTimeout(r, 300 * attempt))
+      }
     }
+
+    if (lastError) {
+      // Prefer backend message when available, otherwise a friendly fallback
+      const backendMsg = lastError?.response?.data?.message
+      setError(backendMsg || 'Tracking details were not found. Please verify the code and try again.')
+    }
+
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -259,214 +284,9 @@ function TrackingContent() {
             </div>
           )}
 
-          {result && (
-            <div id="tracking-results" className="space-y-6">
-              <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-strong)] p-6 shadow-sm">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-brand-50 text-brand-600">
-                        <Package className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--text-muted)]">Tracking code</p>
-                        <p className="mt-1 font-mono text-xl font-bold text-[var(--text-primary)]">{trackingCode}</p>
-                      </div>
-                    </div>
-                    <StatusBadge status={result.shipment.status} />
-                  </div>
-
-                  <div className="mt-8">
-                    <div className="relative">
-                      <div className="absolute left-3 right-3 top-4 h-0.5 bg-white/10" />
-                      <div
-                        className="absolute left-3 top-4 h-0.5 bg-brand-500 transition-all"
-                        style={{ width: `${(activeIndex / (statusFlow.length - 1)) * 100}%`, maxWidth: 'calc(100% - 1.5rem)' }}
-                      />
-                      <div className="relative grid grid-cols-4 gap-3 md:grid-cols-7">
-                        {statusFlow.map((status, index) => {
-                          const active = index <= activeIndex
-                          return (
-                            <div key={status} className="flex flex-col items-center gap-2">
-                              <div className={`z-10 flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${active ? 'bg-brand-500 text-white' : 'bg-white/10 text-[var(--text-muted)]'}`}>
-                                {index + 1}
-                              </div>
-                              <span className={`text-center text-[0.65rem] font-bold uppercase tracking-[0.12em] ${active ? 'text-brand-400' : 'text-[var(--text-muted)]'}`}>
-                                {STATUS_LABELS[status]}
-                              </span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface)] p-5">
-                    <CalendarDays className="h-5 w-5 text-brand-500" />
-                    <p className="mt-3 text-xs font-bold uppercase tracking-[0.25em] text-[var(--text-muted)]">Current status</p>
-                    <p className="mt-1 font-semibold text-[var(--text-primary)]">{STATUS_LABELS[shipment?.current_status || shipment?.currentStatus || shipment?.status] || 'Status pending'}</p>
-                  </div>
-                  <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface)] p-5">
-                    <MapPin className="h-5 w-5 text-brand-500" />
-                    <p className="mt-3 text-xs font-bold uppercase tracking-[0.25em] text-[var(--text-muted)]">Current location</p>
-                    <p className="mt-1 font-semibold text-[var(--text-primary)]">{currentLocationValue}</p>
-                  </div>
-                  <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface)] p-5">
-                    <Clock3 className="h-5 w-5 text-brand-500" />
-                    <p className="mt-3 text-xs font-bold uppercase tracking-[0.25em] text-[var(--text-muted)]">Last updated</p>
-                    <p className="mt-1 font-semibold text-[var(--text-primary)]">{shipment?.lastUpdated ? formatDateTime(shipment.lastUpdated) : formatDateTime(createdAtValue)}</p>
-                  </div>
-                  <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface)] p-5">
-                    <ShieldCheck className="h-5 w-5 text-brand-500" />
-                    <p className="mt-3 text-xs font-bold uppercase tracking-[0.25em] text-[var(--text-muted)]">Service</p>
-                    <p className="mt-1 font-semibold text-[var(--text-primary)]">{serviceTypeLabel}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface)] p-5">
-                  <h2 className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.2em] text-[var(--text-primary)]">
-                    <UserRound className="h-4 w-4 text-brand-500" />
-                    Sender
-                  </h2>
-                  <p className="mt-4 font-semibold text-[var(--text-primary)]">{senderName}</p>
-                  <p className="mt-1 text-sm text-[var(--text-muted)]">{senderAddress}</p>
-                  <p className="mt-1 text-sm text-[var(--text-muted)]">{senderCity}, {senderState} {senderZip}, {senderCountry}</p>
-                  {shipment?.sender_phone && <p className="mt-2 text-sm text-[var(--text-muted)]">📞 {shipment.sender_phone || shipment.senderPhone}</p>}
-                </div>
-                <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface)] p-5">
-                  <h2 className="flex items-center gap-2 font-display text-sm uppercase tracking-[0.2em] text-[var(--text-primary)]">
-                    <MapPin className="h-4 w-4 text-brand-500" />
-                    Recipient
-                  </h2>
-                  <p className="mt-4 font-semibold text-[var(--text-primary)]">{recipientName}</p>
-                  <p className="mt-1 text-sm text-[var(--text-muted)]">{recipientAddress}</p>
-                  <p className="mt-1 text-sm text-[var(--text-muted)]">{recipientCity}, {recipientState} {recipientZip}, {recipientCountry}</p>
-                  {shipment?.recipient_phone && <p className="mt-2 text-sm text-[var(--text-muted)]">📞 {shipment.recipient_phone || shipment.recipientPhone}</p>}
-                </div>
-              </div>
-
-              <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-strong)] p-6">
-                <h2 className="font-display text-lg uppercase tracking-wide text-[var(--text-primary)]">Package details</h2>
-                <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  {(shipment.package_type || shipment.packageType) && (
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">Package type</p>
-                      <p className="mt-2 font-semibold text-[var(--text-primary)]">{shipment.package_type || shipment.packageType}</p>
-                    </div>
-                  )}
-                  {shipment.description && (
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">Contents</p>
-                      <p className="mt-2 font-semibold text-[var(--text-primary)]">{shipment.description}</p>
-                    </div>
-                  )}
-                  {shipment.weight && (
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">Weight</p>
-                      <p className="mt-2 font-semibold text-[var(--text-primary)]">{shipment.weight} {shipment.weight_unit || shipment.weightUnit}</p>
-                    </div>
-                  )}
-                  {shipment.dimensions && (
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">Dimensions</p>
-                      <p className="mt-2 font-semibold text-[var(--text-primary)]">{shipment.dimensions}</p>
-                    </div>
-                  )}
-                  {(shipment.declared_value || shipment.declaredValue) && (
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">Declared value</p>
-                      <p className="mt-2 font-semibold text-[var(--text-primary)]">${(shipment.declared_value || shipment.declaredValue).toFixed(2)}</p>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">Priority</p>
-                    <p className="mt-2 capitalize font-semibold text-[var(--text-primary)]">{shipment.priority}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-strong)] p-6">
-                <h2 className="font-display text-lg uppercase tracking-wide text-[var(--text-primary)]">Shipment events timeline</h2>
-                <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-                  {createdAtValue && (
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">Created</p>
-                      <p className="mt-2 font-semibold text-[var(--text-primary)]">{formatDateTime(createdAtValue)}</p>
-                    </div>
-                  )}
-                  {shipDateValue && (
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">Shipped date</p>
-                      <p className="mt-2 font-semibold text-[var(--text-primary)]">{formatDate(shipDateValue)}</p>
-                    </div>
-                  )}
-                  {estimatedDeliveryCardValue && (
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">Estimated delivery</p>
-                      <p className="mt-2 font-semibold text-[var(--text-primary)]">{formatDate(estimatedDeliveryCardValue)}</p>
-                    </div>
-                  )}
-                  {actualDeliveryValue && (
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">Delivered</p>
-                      <p className="mt-2 font-semibold text-[var(--text-primary)]">{formatDate(actualDeliveryValue)}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-strong)] p-6">
-                <div className="mt-6 space-y-5">
-                  {timelineEvents.length === 0 ? (
-                    <p className="text-sm text-[var(--text-muted)]">No timeline events have been added yet.</p>
-                  ) : (
-                    timelineEvents.map((event, index) => (
-                      <div key={event.id} className="flex gap-4">
-                        <div className={`mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${index === 0 ? 'bg-brand-500 text-white' : 'bg-white/10 text-[var(--text-primary)]'}`}>
-                          <Clock3 className="h-4 w-4" />
-                        </div>
-                        <div className="border-b border-[var(--border)] pb-5 last:border-b-0">
-                          <p className="font-semibold text-[var(--text-primary)]">{event.status}</p>
-                          {event.location && <p className="mt-1 text-sm text-[var(--text-muted)]">{event.location}</p>}
-                          <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
-                            {event.description || getTrackingDescription(event.status)}
-                          </p>
-                          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">{formatDateTime(event.event_time)}</p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface-strong)] p-6">
-                <h2 className="font-display text-lg uppercase tracking-wide text-[var(--text-primary)]">Shipment documents</h2>
-                <p className="mt-2 text-sm text-[var(--text-muted)]">View your shipment receipt or invoice for charges, fees, and delivery details.</p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <Link href={`/receipt?id=${trackingCode}`} className="btn-primary inline-flex items-center justify-center">
-                    View receipt
-                  </Link>
-                  <Link href={`/invoice?id=${trackingCode}`} className="btn-secondary inline-flex items-center justify-center">
-                    View invoice
-                  </Link>
-                </div>
-              </div>
-
-              {result.shipment.notes && (
-                <div className="rounded-[2rem] border border-amber-600 bg-amber-950 p-6">
-                  <h2 className="flex items-center gap-2 font-display text-lg uppercase tracking-wide text-amber-100">
-                    <Info className="h-5 w-5 text-amber-300" />
-                    Special notes
-                  </h2>
-                  <p className="mt-3 text-sm text-amber-200">{result.shipment.notes}</p>
-                </div>
-              )}
-            </div>
-          )}
+          <div id="tracking-results">
+            {trackingId && <TrackingResult trackingNumber={trackingId} initialData={result || undefined} />}
+          </div>
         </section>
       </main>
       <Testimonials />
