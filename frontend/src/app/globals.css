@@ -361,65 +361,92 @@ label {
 }
 
 @media (max-width: 768px) {
-    .hero {
-        min-height: 60vh;
-    }
-
-    .hero-content {
-        top: 45%;
-    }
-
-    .gallery {
-        padding: 1.5rem;
-    }
-
-    .partner-track {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-}
-
-/* Force dark theme on mobile screens */
-@media (max-width: 768px) {
   :root {
-    --bg: #05070f;
-    --surface: #0c1629;
-    --surface-strong: #0f172a;
-    --surface-muted: #0b1220;
-    --text-primary: #e2e8f0;
-    --text-muted: #94a3b8;
-    --border: #243240;
-    --card: rgba(15,23,42,0.95);
+    --bg: #1a2338;
+    --surface: #121c32;
+    --surface-strong: #0f1728;
+    --surface-muted: #0a1324;
+    --text-primary: #ffffff;
+    --text-muted: #d1d9f2;
+    --border: rgba(255,255,255,0.12);
+    --card: rgba(255, 255, 255, 0.08);
   }
 
-  html, body {
-    background: var(--bg) !important;
-    color: var(--text-primary) !important;
+  body, html, .main, .hero, .container, #home {
+    background-color: #1a2338 !important;
+    color: #ffffff !important;
   }
 
-  /* Override common utility classes that can force light backgrounds/text */
-  .bg-white,
-  .bg-slate-50,
-  .bg-gray-50,
-  .bg-slate-100,
-  .bg-gray-100 {
-    background-color: var(--surface-strong) !important;
+  h1, h2, .hero-title {
+    font-size: 2.2rem !important;
+    line-height: 1.1 !important;
+    font-weight: 700 !important;
   }
 
-  .text-slate-900,
-  .text-gray-900,
-  .text-slate-800,
-  .text-gray-800 {
-    color: var(--text-primary) !important;
+  p, .hero-subtitle {
+    font-size: 1.05rem !important;
+    line-height: 1.5 !important;
   }
 
-  .border-slate-200,
-  .border-gray-200,
-  .border-gray-100 {
-    border-color: var(--border) !important;
+  .hero {
+    padding: 4rem 1.5rem 3rem !important;
+    min-height: 70vh !important;
+    display: flex !important;
+    align-items: center !important;
   }
 
-  .overlay { background: rgba(0,0,0,0.65) !important; }
+  .btn, .track-btn, button {
+    padding: 1rem 2rem !important;
+    font-size: 1.1rem !important;
+    border-radius: 50px !important;
+    margin: 0.8rem 0 !important;
+  }
+
+  .feature-cards {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 1.2rem !important;
+    padding: 2rem 1rem !important;
+  }
+
+  .card {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    padding: 1.8rem 1.2rem !important;
+    border-radius: 12px !important;
+  }
+
+  nav, .navbar {
+    padding: 1rem 1.5rem !important;
+  }
+
+  .logo {
+    font-size: 1.4rem !important;
+  }
+
+  .hero-image img {
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 12px !important;
+    margin-top: 2rem !important;
+  }
+
+  .section {
+    padding: 3rem 1rem !important;
+  }
+
+  .gallery {
+    padding: 1.5rem !important;
+  }
+
+  .partner-track {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .overlay {
+    background: rgba(0,0,0,0.65) !important;
+  }
 }
 
 /* Remove light/white backgrounds site-wide (override Tailwind utilities) */
