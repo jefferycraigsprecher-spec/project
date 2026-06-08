@@ -225,6 +225,19 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS tracking_notifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  shipment_id INTEGER NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  frequency TEXT DEFAULT 'all',
+  is_active INTEGER DEFAULT 1,
+  subscribed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  unsubscribed_at DATETIME,
+  FOREIGN KEY (shipment_id) REFERENCES shipments(id) ON DELETE CASCADE,
+  UNIQUE(shipment_id, email)
+);
+
 CREATE INDEX IF NOT EXISTS idx_shipments_tracking_id ON shipments(tracking_id);
 CREATE INDEX IF NOT EXISTS idx_shipments_customer ON shipments(customer_id);
 CREATE INDEX IF NOT EXISTS idx_shipments_status ON shipments(status);

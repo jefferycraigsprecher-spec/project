@@ -10,6 +10,8 @@ const { pool } = require('../config/database');
 router.get('/track/:trackingId', ctrl.trackShipment);
 router.get('/tracking/:trackingId', ctrl.getShipmentByTracking);
 router.get('/tracking/:trackingId/invoice/pdf', ctrl.getInvoicePdfByTracking);
+router.post('/subscribe-notifications', ctrl.subscribeToNotifications);
+router.post('/unsubscribe-notifications', ctrl.unsubscribeFromNotifications);
 
 // Protected
 router.use(authenticateAdmin);

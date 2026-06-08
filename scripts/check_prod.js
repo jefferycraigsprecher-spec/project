@@ -1,9 +1,9 @@
 const urls = {
-  backendHealth: 'https://backend-wisdom7.vercel.app/api/health',
-  backendTrackWithPrefix: 'https://backend-wisdom7.vercel.app/api/shipments/track/MSC-2762369700',
-  backendTrackNoPrefix: 'https://backend-wisdom7.vercel.app/api/shipments/track/2762369700',
-  frontendTrack: 'https://frontend-wisdom7.vercel.app/track?id=2762369700',
-  frontendRoot: 'https://frontend-wisdom7.vercel.app/'
+  backendHealth: 'https://midwest-shipment.midwestlogistics.workers.dev/api/health',
+  backendTrackWithPrefix: 'https://midwest-shipment.midwestlogistics.workers.dev/api/shipments/track/MSC-2762369700',
+  backendTrackNoPrefix: 'https://midwest-shipment.midwestlogistics.workers.dev/api/shipments/track/2762369700',
+  frontendTrack: 'https://midwest-shipment.pages.dev/track?id=2762369700',
+  frontendRoot: 'https://midwest-shipment.pages.dev/'
 }
 
 async function check(url) {

@@ -896,3 +896,99 @@ exports.getDashboardStats = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
+
+// ── PUBLIC: SUBSCRIBE TO NOTIFICATIONS ────────
+exports.subscribeToNotifications = async (req, res) => {
+  try {
+    const { trackingCode, email, phone, frequency } = req.body;
+
+    if (!trackingCode || !email) {
+      return res.status(400).json({ success: false, message: 'Tracking code and email are required.' });
+    }
+
+    // Normalize tracking code
+    const normalizedCode = String(trackingCode || '').trim().toUpperCase().replace(/\s+/g, '');
+    const finalCode = normalizedCode.startsWith('MSC-') ? normalizedCode : `MSC-${normalizedCode}`;
+
+    // Verify shipment exists
+    const [shipments] = await pool.execute(
+      'SELECT id FROM shipments WHERE tracking_id = ?', 
+      [finalCode]
+    );
+
+    if (!shipments.length) {
+      return res.status(404).json({ success: false, message: 'Shipment not found.' });
+    }
+
+    const shipmentId = shipments[0].id;
+
+    // Check if subscription already exists
+    const [existing] = await pool.execute(
+      'SELECT id FROM tracking_notifications WHERE shipment_id = ? AND email = ?',
+      [shipmentId, email]
+    );
+
+    if (existing.length) {
+      return res.status(409).json({ success: false, message: 'Already subscribed to this shipment.' });
+    }
+
+    // Create subscription
+    await pool.execute(
+      `INSERT INTO tracking_notifications (shipment_id, email, phone, frequency, subscribed_at) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [shipmentId, email, phone || null, frequency || 'all', new Date()]
+    );
+
+    res.status(201).json({ 
+      success: true, 
+      message: 'Successfully subscribed to tracking updates.',
+      trackingCode: finalCode
+    });
+  } catch (err) {
+    console.error('Subscribe to notifications error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// ── PUBLIC: UNSUBSCRIBE FROM NOTIFICATIONS ────
+exports.unsubscribeFromNotifications = async (req, res) => {
+  try {
+    const { trackingCode, email } = req.body;
+
+    if (!trackingCode || !email) {
+      return res.status(400).json({ success: false, message: 'Tracking code and email are required.' });
+    }
+
+    // Normalize tracking code
+    const normalizedCode = String(trackingCode || '').trim().toUpperCase().replace(/\s+/g, '');
+    const finalCode = normalizedCode.startsWith('MSC-') ? normalizedCode : `MSC-${normalizedCode}`;
+
+    // Find shipment
+    const [shipments] = await pool.execute(
+      'SELECT id FROM shipments WHERE tracking_id = ?', 
+      [finalCode]
+    );
+
+    if (!shipments.length) {
+      return res.status(404).json({ success: false, message: 'Shipment not found.' });
+    }
+
+    // Delete subscription
+    const [result] = await pool.execute(
+      'DELETE FROM tracking_notifications WHERE shipment_id = ? AND email = ?',
+      [shipments[0].id, email]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Subscription not found.' });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Successfully unsubscribed from tracking updates.' 
+    });
+  } catch (err) {
+    console.error('Unsubscribe from notifications error:', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};

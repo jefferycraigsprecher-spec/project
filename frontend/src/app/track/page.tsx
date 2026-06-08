@@ -11,7 +11,7 @@ import StatusBadge from '@/components/ui/StatusBadge'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import api from '@/lib/api'
 import { STATUS_LABELS, SERVICE_LABELS, formatDate, formatDateTime, getTrackingDescription } from '@/lib/utils'
-import { AlertCircle, CalendarDays, Clock3, MapPin, Package, Search, ShieldCheck, UserRound, Zap, DollarSign, Layers, Info } from 'lucide-react'
+import { AlertCircle, CalendarDays, Clock3, MapPin, Package, Search, ShieldCheck, UserRound, Zap, DollarSign, Layers, Info, Bell, CheckCircle } from 'lucide-react'
 import type { Shipment, TrackingEvent } from '@/types'
 
 const statusFlow = [
@@ -39,6 +39,11 @@ function TrackingContent() {
   const [error, setError] = useState('')
   const [result, setResult] = useState<{ shipment: Shipment; events: TrackingEvent[] } | null>(null)
   const [autoLoadKey, setAutoLoadKey] = useState('')
+  const [notificationEmail, setNotificationEmail] = useState('')
+  const [notificationPhone, setNotificationPhone] = useState('')
+  const [notificationFrequency, setNotificationFrequency] = useState('all')
+  const [notificationLoading, setNotificationLoading] = useState(false)
+  const [notificationMessage, setNotificationMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const activeIndex = useMemo(() => {
     if (!result?.shipment?.status) return 0
@@ -130,6 +135,49 @@ function TrackingContent() {
       setError(err.response?.data?.message || 'Tracking details were not found.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSubscribeToNotifications = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!notificationEmail) {
+      setNotificationMessage({ type: 'error', text: 'Email address is required.' })
+      return
+    }
+
+    if (!trackingCode) {
+      setNotificationMessage({ type: 'error', text: 'Please track a shipment first.' })
+      return
+    }
+
+    setNotificationLoading(true)
+    setNotificationMessage(null)
+
+    try {
+      const response = await api.post('/shipments/subscribe-notifications', {
+        trackingCode,
+        email: notificationEmail,
+        phone: notificationPhone || null,
+        frequency: notificationFrequency
+      })
+
+      setNotificationMessage({ 
+        type: 'success', 
+        text: 'Successfully subscribed to tracking updates! You will receive email notifications for any changes.' 
+      })
+      
+      // Reset form
+      setNotificationEmail('')
+      setNotificationPhone('')
+      setNotificationFrequency('all')
+    } catch (err: any) {
+      setNotificationMessage({
+        type: 'error',
+        text: err.response?.data?.message || 'Failed to subscribe. Please try again.'
+      })
+    } finally {
+      setNotificationLoading(false)
     }
   }
 
@@ -390,6 +438,91 @@ function TrackingContent() {
                     View invoice
                   </Link>
                 </div>
+              </div>
+
+              <div className="border border-brand-200 bg-gradient-to-br from-brand-50 to-blue-50 p-6">
+                <h2 className="flex items-center gap-2 font-display text-lg uppercase tracking-wide text-navy-900">
+                  <Bell className="h-5 w-5 text-brand-500" />
+                  Get tracking updates
+                </h2>
+                <p className="mt-2 text-sm text-gray-600">Subscribe to receive email notifications whenever your shipment status is updated.</p>
+                
+                {notificationMessage && (
+                  <div className={`mt-4 flex gap-3 p-4 rounded-lg ${
+                    notificationMessage.type === 'success' 
+                      ? 'bg-green-50 border border-green-200 text-green-700' 
+                      : 'bg-red-50 border border-red-200 text-red-700'
+                  }`}>
+                    <div className="mt-0.5">
+                      {notificationMessage.type === 'success' ? (
+                        <CheckCircle className="h-5 w-5" />
+                      ) : (
+                        <AlertCircle className="h-5 w-5" />
+                      )}
+                    </div>
+                    <p className="text-sm">{notificationMessage.text}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubscribeToNotifications} className="mt-4 space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700">Email address *</label>
+                    <input
+                      type="email"
+                      value={notificationEmail}
+                      onChange={(e) => setNotificationEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700">Phone number (optional)</label>
+                    <input
+                      type="tel"
+                      value={notificationPhone}
+                      onChange={(e) => setNotificationPhone(e.target.value)}
+                      placeholder="+1 (555) 123-4567"
+                      className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700">Notification frequency</label>
+                    <select
+                      value={notificationFrequency}
+                      onChange={(e) => setNotificationFrequency(e.target.value)}
+                      className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                    >
+                      <option value="all">All updates</option>
+                      <option value="major">Major updates only</option>
+                      <option value="delivery">Delivery only</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={notificationLoading}
+                    className="w-full btn-primary flex items-center justify-center gap-2 py-2.5"
+                  >
+                    {notificationLoading ? (
+                      <>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Subscribing...
+                      </>
+                    ) : (
+                      <>
+                        <Bell className="h-4 w-4" />
+                        Subscribe to updates
+                      </>
+                    )}
+                  </button>
+
+                  <p className="text-xs text-gray-500 text-center mt-3">
+                    We respect your privacy. Unsubscribe anytime from the tracking page.
+                  </p>
+                </form>
               </div>
 
               {result.shipment.notes && (
