@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Barlow, Oswald } from 'next/font/google'
+import { Barlow, Inter, Oswald } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import SupportChatWidget from '@/components/ui/SupportChatWidget'
 import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar'
@@ -20,6 +20,12 @@ const oswald = Oswald({
   display: 'swap',
 })
 
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'Midwest Shipment Company | Fast, Reliable Logistics',
   description: 'Midwest Shipment Company – delivering packages across the USA with speed, reliability, and care. Track your shipment in real time.',
@@ -28,12 +34,13 @@ export const metadata: Metadata = {
     title: 'Midwest Shipment Company',
     description: 'Fast, reliable logistics across the USA',
     type: 'website',
-  }
+  },
+  viewport: 'width=device-width, initial-scale=1.0',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${barlow.variable} ${oswald.variable}`}>
+    <html lang="en" className={`${barlow.variable} ${oswald.variable} ${inter.variable}`}>
       <body className="font-sans antialiased">
         <ErrorBoundary>
           {children}

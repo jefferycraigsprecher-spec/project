@@ -20,13 +20,13 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; background: var(--bg); }
 body {
-  font-family: var(--font-barlow), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   color: var(--text-primary);
   background: var(--bg);
 }
 
 h1, h2, h3, h4, h5 {
-  font-family: var(--font-oswald), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   letter-spacing: 0.02em;
 }
 
@@ -205,6 +205,7 @@ select,
 label {
     min-width: 0;
     color: var(--text-primary);
+    font-family: inherit;
 }
 
 .bg-white,
