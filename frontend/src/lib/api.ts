@@ -1,10 +1,19 @@
 import axios from 'axios'
 import Cookies from 'js-cookie'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+const trimTrailingSlash = (value = '') => String(value).trim().replace(/\/+$/, '')
+const getDefaultApiUrl = () => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL ? trimTrailingSlash(process.env.NEXT_PUBLIC_API_URL) : ''
+  if (envUrl) {
+    return envUrl.includes('/api') ? envUrl : `${envUrl}/api`
+  }
+  return process.env.NODE_ENV === 'development' ? 'http://localhost:5000/api' : '/api'
+}
+
+const DEFAULT_API_URL = getDefaultApiUrl()
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: DEFAULT_API_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
 })

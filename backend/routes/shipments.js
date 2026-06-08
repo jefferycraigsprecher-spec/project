@@ -57,6 +57,7 @@ router.post('/', ctrl.createShipment);
 router.put('/:id', ctrl.updateShipment);
 router.delete('/:id', ctrl.deleteShipment);
 router.post('/:id/events', ctrl.addTrackingEvent);
+router.post('/:id/send-sms', ctrl.sendShipmentSms);
 router.post('/:id/media', upload.single('file'), ctrl.uploadMedia);
 router.delete('/:id/media/:mediaId', ctrl.deleteMedia);
 

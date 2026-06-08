@@ -24,11 +24,17 @@ const statusFlow = [
   'delivered',
 ]
 
+const normalizeTrackingCode = (raw = '') => {
+  const value = String(raw || '').trim().toUpperCase().replace(/\s+/g, '')
+  if (!value) return ''
+  if (value.startsWith('MSC-')) return value
+  return `MSC-${value}`
+}
+
 function TrackingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [trackingId, setTrackingId] = useState(searchParams.get('id') || '')
-  const [customer, setCustomer] = useState(searchParams.get('customer') || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<{ shipment: Shipment; events: TrackingEvent[] } | null>(null)
@@ -91,19 +97,17 @@ function TrackingContent() {
   const estimatedDeliveryCardValue = shipment?.estimatedDelivery || shipment?.estimated_delivery
   const serviceTypeLabel = SERVICE_LABELS[serviceTypeValue] || ''
 
-  const handleTrack = async (id = trackingId, customerKey = customer, updateUrl = true) => {
-    const code = id.trim().toUpperCase()
-    const customerValue = customerKey.trim()
+  const handleTrack = async (id = trackingId, updateUrl = true) => {
+    const code = normalizeTrackingCode(id)
 
-    if (!code || !customerValue) {
-      setError('Enter your tracking code and recipient email or phone number.')
+    if (!code || code === 'MSC-') {
+      setError('Enter your tracking code.')
       return
     }
 
     if (updateUrl) {
       const query = new URLSearchParams()
       query.set('id', code)
-      query.set('customer', customerValue)
       router.replace(`/track?${query.toString()}`)
     }
 
@@ -112,7 +116,7 @@ function TrackingContent() {
     setResult(null)
 
     try {
-      const res = await api.get(`/shipments/track/${code}`, { params: { customer: customerValue } })
+      const res = await api.get(`/shipments/track/${code}`)
       setResult({ shipment: res.data.shipment, events: res.data.events || [] })
       
       // Auto-scroll to results after data is loaded
@@ -131,15 +135,13 @@ function TrackingContent() {
 
   useEffect(() => {
     const id = searchParams.get('id')
-    const customerQuery = searchParams.get('customer')
-    const key = `${id || ''}|${customerQuery || ''}`
+    const key = `${id || ''}`
 
     if (id) setTrackingId(id.toUpperCase())
-    if (customerQuery) setCustomer(customerQuery)
 
-    if (id && customerQuery && autoLoadKey !== key) {
+    if (id && autoLoadKey !== key) {
       setAutoLoadKey(key)
-      handleTrack(id, customerQuery, false)
+      handleTrack(id, false)
     }
   }, [searchParams, autoLoadKey])
 
@@ -153,23 +155,16 @@ function TrackingContent() {
               <p className="section-subtitle text-brand-300">Secure shipment lookup</p>
               <h1 className="mt-3 font-display text-4xl uppercase tracking-wide md:text-5xl">Track your package</h1>
               <p className="mt-4 text-sm leading-7 text-slate-300 md:text-base">
-                Use the tracking code and the recipient email or phone number on the shipment to view current status, location, delivery estimate, and timeline history.
+                Enter your tracking code to load shipment status instantly. Recipient email or phone is optional and can provide extra confirmation when available.
               </p>
             </div>
 
-            <div className="mt-8 grid gap-3 bg-white p-3 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.75)] md:grid-cols-[1fr_1fr_auto]">
+            <div className="mt-8 grid gap-3 bg-white p-3 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.75)] md:grid-cols-[1fr_auto]">
               <input
                 value={trackingId}
                 onChange={(event) => setTrackingId(event.target.value)}
                 onKeyDown={(event) => event.key === 'Enter' && handleTrack()}
-                placeholder="Tracking code"
-                className="min-h-12 border border-slate-200 px-4 text-sm font-semibold text-slate-900 outline-none focus:border-brand-500"
-              />
-              <input
-                value={customer}
-                onChange={(event) => setCustomer(event.target.value)}
-                onKeyDown={(event) => event.key === 'Enter' && handleTrack()}
-                placeholder="Recipient email or phone"
+                placeholder="Tracking code or number"
                 className="min-h-12 border border-slate-200 px-4 text-sm font-semibold text-slate-900 outline-none focus:border-brand-500"
               />
               <button onClick={() => handleTrack()} disabled={loading} className="btn-primary justify-center px-8">
@@ -177,6 +172,7 @@ function TrackingContent() {
                 {loading ? 'Searching' : 'Track'}
               </button>
             </div>
+            <p className="mt-2 text-xs text-slate-400">Only the tracking code is required. The MSC- prefix is added automatically.</p>
           </div>
         </section>
 

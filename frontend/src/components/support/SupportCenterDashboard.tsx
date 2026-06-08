@@ -111,7 +111,8 @@ export default function SupportCenterDashboard() {
   }, [search, statusFilter, priorityFilter, assignedFilter])
 
   useEffect(() => {
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000', {
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || (typeof window !== 'undefined' ? window.location.origin : undefined)
+    const socket = io(socketUrl, {
       transports: ['websocket'],
     })
 

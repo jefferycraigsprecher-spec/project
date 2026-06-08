@@ -268,7 +268,7 @@ function InvoiceContent() {
 
     const invoiceId = invoiceData.id || invoiceData.shipment_id
     const trackingId = invoiceData.tracking_id || invoiceData.trackingId || invoiceData.trackingNumber
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '/api'
     const token = Cookies.get('msc_admin_token') || Cookies.get('msc_customer_token')
     const headers: Record<string, string> = {}
     if (token) headers.Authorization = `Bearer ${token}`

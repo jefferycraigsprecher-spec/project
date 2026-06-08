@@ -5,13 +5,20 @@
     "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
     "backend": "npm --prefix backend run dev",
     "frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
+    "start": "concurrently \"npm --prefix backend run start\" \"npm --prefix frontend run start\"",
     "verify": "node verify.js",
     "lint": "npm --prefix frontend run typecheck",
     "e2e": "node ./scripts/e2e_test.js",
     "stable-start": "npm run verify && concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
     "setup": "npm install && npm --prefix backend install && npm --prefix frontend install"
   },
+  "postinstall": "npm --prefix backend install && npm --prefix frontend install",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "wrangler": "^4.98.0"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "^1.19.11"
   }
 }

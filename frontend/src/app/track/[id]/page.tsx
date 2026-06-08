@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 
-export default function TrackingResult({ params }: { params: { id: string } }) {
-  redirect(`/track?id=${encodeURIComponent(params.id)}`)
+export default async function TrackingResult({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  redirect(`/track?id=${encodeURIComponent(id)}`)
 }

@@ -61,6 +61,23 @@ const loadAndRunSqliteSchema = async (database) => {
   }
 };
 
+const seedSqliteAdmin = async (database) => {
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@midwestshipment.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123456';
+  const adminPasswordHash = await bcrypt.hash(adminPassword, 12);
+
+  await database.run(`
+    INSERT INTO admins (name, email, password_hash, role)
+    VALUES ('Super Admin', ?, ?, 'super_admin')
+    ON CONFLICT(email) DO UPDATE SET
+      name = excluded.name,
+      password_hash = excluded.password_hash,
+      role = excluded.role
+  `, [adminEmail, adminPasswordHash]);
+
+  console.log('✅ SQLite admin user seeded or updated');
+};
+
 const initializeSqlite = async () => {
   const sqlite3 = require('sqlite3').verbose();
   const sqlite = require('sqlite');
@@ -71,6 +88,7 @@ const initializeSqlite = async () => {
 
   await database.run('PRAGMA foreign_keys = ON');
   await loadAndRunSqliteSchema(database);
+  await seedSqliteAdmin(database);
   await configureSqlitePool(database);
 };
 

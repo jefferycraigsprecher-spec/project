@@ -251,14 +251,14 @@ export default function Navbar() {
   }, [])
 
   return (
-    <header className={`sticky top-0 z-50 transition duration-500 ${hasScrolled ? 'bg-slate-950/95 shadow-xl shadow-black/30 backdrop-blur-xl' : 'bg-transparent'}`}>
-      <div className="border-b border-slate-800/20 bg-slate-950/10 backdrop-blur-xl text-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2 text-[0.7rem] uppercase tracking-[0.3em]">
-          <div className="flex flex-wrap items-center gap-4 text-white">
-            <a href="tel:+12397468728" className="inline-flex items-center gap-2 font-semibold text-white transition hover:text-brand-200">
-              <Phone className="h-3.5 w-3.5 text-brand-300" /> +1 239-746-8728
+    <header className={`sticky top-0 z-50 transition duration-500 ${hasScrolled ? 'bg-white shadow-sm shadow-slate-200/40 backdrop-blur-xl' : 'bg-white'}`}>
+      <div className="border-b border-slate-200 bg-white text-slate-700">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2 text-[0.75rem] uppercase tracking-[0.3em]">
+          <div className="flex flex-wrap items-center gap-4 text-slate-700">
+            <a href="tel:+12397468728" className="inline-flex items-center gap-2 font-semibold text-slate-700 transition hover:text-brand-500">
+              <Phone className="h-3.5 w-3.5 text-brand-500" /> +1 239-746-8728
             </a>
-            <a href="mailto:info.midwestshipment@gmail.com" className="inline-flex items-center gap-2 font-semibold text-white transition hover:text-brand-200">
+            <a href="mailto:info.midwestshipment@gmail.com" className="inline-flex items-center gap-2 font-semibold text-slate-700 transition hover:text-brand-500">
               <Mail className="h-3.5 w-3.5 text-brand-300" /> info.midwestshipment@gmail.com
             </a>
             <span className="hidden items-center gap-2 text-slate-400 sm:inline-flex">
@@ -271,15 +271,15 @@ export default function Navbar() {
               type="button"
               aria-expanded={languagePopoverOpen}
               onClick={() => setLanguagePopoverOpen((open) => !open)}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-[0.75rem] font-bold text-brand-500 shadow-sm transition hover:border-brand-500 hover:text-brand-600"
+              className="inline-flex min-w-0 max-w-[12rem] items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-[0.75rem] font-bold text-brand-500 shadow-sm transition hover:border-brand-500 hover:text-brand-600"
             >
               <span className="language-switcher__icon">🌐</span>
-              <span>{selectedLanguageLabel}</span>
+              <span className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{selectedLanguageLabel}</span>
               <span className="text-xs">▼</span>
             </button>
 
             {languagePopoverOpen ? (
-              <div className="language-dropdown absolute right-0 z-50 mt-3 w-72 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+              <div className="language-dropdown absolute left-0 right-auto z-50 mt-3 w-[18rem] max-w-[92vw] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl sm:left-auto sm:right-0">
                 <div className="language-dropdown__search border-b border-slate-200 px-4 py-3">
                   <label htmlFor="language-filter" className="sr-only">
                     Search languages
@@ -301,14 +301,14 @@ export default function Navbar() {
                       <li key={language.value} className="rounded-2xl px-2 py-2 hover:bg-brand-50">
                         <button
                           type="button"
-                          className="w-full rounded-2xl px-3 py-2 text-left text-sm font-medium text-slate-800"
+                          className="w-full rounded-2xl px-3 py-2 text-left text-sm font-medium text-slate-800 whitespace-normal break-words"
                           onClick={() => {
                             handleLanguageChange(language.value)
                             setLanguagePopoverOpen(false)
                           }}
                         >
-                          <span className="mr-2">{language.flag}</span>
-                          {language.label}
+                          <span className="mr-2 inline-block align-middle">{language.flag}</span>
+                          <span className="inline-block align-middle">{language.label}</span>
                         </button>
                       </li>
                     ))
@@ -329,13 +329,13 @@ export default function Navbar() {
         </div>
       </div>
 
-      <div className={`relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 transition duration-300 ${hasScrolled ? 'bg-slate-950/95 shadow-xl backdrop-blur-xl' : 'bg-transparent'}`}>
+      <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 bg-white">
         <Link href="/" className="flex items-center gap-3">
-          <div className="bg-brand-500 p-2">
+          <div className="rounded-full bg-brand-500 p-2 shadow-sm shadow-brand-500/20">
             <Package className="w-5 h-5 text-white" />
           </div>
           <div>
-            <div className="font-display text-lg font-bold uppercase tracking-[0.2em] text-white">Midwest</div>
+            <div className="font-display text-lg font-bold uppercase tracking-[0.2em] text-slate-900">Midwest</div>
             <div className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-brand-500">Shipment Company</div>
           </div>
         </Link>
@@ -346,7 +346,7 @@ export default function Navbar() {
               <Link
                 key={item.label}
                 href={item.href}
-                className="text-[0.8rem] font-semibold uppercase tracking-[0.24em] text-white transition hover:text-brand-200"
+                className="text-[0.8rem] font-semibold uppercase tracking-[0.24em] text-slate-700 transition hover:text-brand-500"
               >
                 {item.label}
               </Link>
@@ -355,7 +355,7 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link href="/track" className="rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-white transition hover:border-brand-400 hover:bg-white/10">
+          <Link href="/track" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-slate-900 transition hover:border-brand-400 hover:bg-slate-50">
             Track Package
           </Link>
           <Link href="/contact" className="rounded-full bg-brand-500 px-5 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-white transition hover:bg-brand-400">
@@ -373,13 +373,13 @@ export default function Navbar() {
         </button>
 
         {isNavbarOpen ? (
-          <div className="absolute inset-x-0 top-full z-40 rounded-b-[2rem] border border-white/10 bg-slate-950/95 p-4 shadow-2xl backdrop-blur-xl md:hidden">
+          <div className="absolute inset-x-0 top-full z-40 rounded-b-[2rem] border border-slate-200 bg-white p-4 shadow-2xl md:hidden">
             <nav className="flex flex-col gap-3 py-3">
               {navItems.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="rounded-3xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-white/5"
+                  className="rounded-3xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-800 transition hover:bg-slate-50"
                 >
                   {item.label}
                 </Link>
@@ -389,7 +389,7 @@ export default function Navbar() {
               <Link href="/track" className="rounded-3xl bg-brand-500 px-4 py-3 text-sm font-semibold text-white text-center transition hover:bg-brand-400">
                 Track Package
               </Link>
-              <Link href="/contact" className="rounded-3xl border border-white/10 px-4 py-3 text-sm font-semibold text-white text-center transition hover:bg-white/5">
+              <Link href="/contact" className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900 text-center transition hover:bg-slate-100">
                 Get Quote
               </Link>
               <Link href="/admin/dashboard" className="rounded-3xl bg-brand-500 px-4 py-3 text-sm font-semibold text-white text-center transition hover:bg-brand-400">

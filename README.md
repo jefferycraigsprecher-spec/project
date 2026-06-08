@@ -178,6 +178,22 @@ The system includes these core tables:
 - `GET /api/customers/profile` - Get customer profile
 - `PUT /api/customers/profile` - Update profile
 
+---
+
+## ☁️ Deploying the Backend for Production
+
+The frontend is deployed to Cloudflare Workers, but the backend must be hosted separately.
+
+Recommended options:
+- Render using `backend/render.yaml`
+- Any Docker-friendly host using `backend/Dockerfile`
+
+After you have a backend URL, configure the frontend to use it by setting:
+- `NEXT_PUBLIC_API_URL=https://<backend-host>/api`
+- `NEXT_PUBLIC_SOCKET_URL=https://<backend-host>`
+
+Then rebuild and redeploy the frontend from `frontend/`.
+
 ### Contact
 - `POST /api/contact` - Submit contact form
 
@@ -219,6 +235,23 @@ UPLOAD_PATH=./uploads
 The frontend automatically uses:
 - API URL: `http://localhost:5000/api`
 - Configurable via `NEXT_PUBLIC_API_URL` env variable
+
+---
+
+## 🌐 Cloudflare Pages Deployment
+This repository is a monorepo with separate frontend and backend apps. For Cloudflare Pages, deploy only the frontend app and host the backend separately.
+
+Recommended Pages settings:
+- Root directory: `/`
+- Install command: `npm install`
+- Build command: `npm run build`
+- Environment variables:
+  - `NEXT_PUBLIC_API_URL` - frontend API base URL, e.g. `https://api.example.com/api`
+  - `NEXT_PUBLIC_SOCKET_URL` - socket server base URL, e.g. `https://api.example.com`
+
+Important:
+- The backend API at `backend/` cannot run directly on Cloudflare Pages.
+- Use a separate server host for the backend, or migrate the API to Cloudflare Workers.
 
 ---
 
@@ -311,6 +344,7 @@ const response = await api.post('/shipments', {
 | `npm run backend` | Start only backend API |
 | `npm run frontend` | Start only frontend |
 | `npm run setup` | Install all dependencies |
+| `npm run build` | Build the frontend for production |
 | `npm run verify` | Verify system status |
 
 ---

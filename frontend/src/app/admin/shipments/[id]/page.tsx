@@ -36,11 +36,7 @@ export default function ShipmentDetailPage() {
   const [caption, setCaption] = useState('')
   const [eventForm, setEventForm] = useState({ status: 'in_transit', location: '', remarks: '', admin_notes: '', event_date: '', event_time: '', event_ampm: 'AM' })
   const [form, setForm] = useState<Record<string, any>>({})
-
-  const apiBase = useMemo(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
-    return apiUrl.replace('/api', '')
-  }, [])
+  const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '') || ''
 
   const loadShipment = async () => {
     setLoading(true)

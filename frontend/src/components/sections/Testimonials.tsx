@@ -45,7 +45,7 @@ export default function Testimonials() {
         loop
         autoplay={{ delay: 8500, disableOnInteraction: false }}
         pagination={{ clickable: true }}
-        className="space-y-8"
+        className="space-y-8 overflow-hidden"
       >
         {reviews.map((review, index) => (
           <SwiperSlide key={index}>

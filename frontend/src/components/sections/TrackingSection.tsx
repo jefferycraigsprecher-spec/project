@@ -4,12 +4,20 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, PackageSearch, ShieldCheck, Clock3, Truck } from 'lucide-react'
 
+const normalizeTrackingCode = (raw = '') => {
+  const value = String(raw || '').trim().toUpperCase().replace(/\s+/g, '')
+  if (!value) return ''
+  if (value.startsWith('MSC-')) return value
+  return `MSC-${value}`
+}
+
 export default function TrackingSection() {
   const [trackingId, setTrackingId] = useState('')
   const router = useRouter()
 
   const handleTrack = () => {
-    if (trackingId.trim()) router.push(`/track?id=${trackingId.trim().toUpperCase()}`)
+    const normalized = normalizeTrackingCode(trackingId)
+    if (normalized && normalized !== 'MSC-') router.push(`/track?id=${normalized}`)
   }
 
   return (
@@ -37,7 +45,7 @@ export default function TrackingSection() {
                     type="text"
                     value={trackingId}
                     onChange={(e) => setTrackingId(e.target.value)}
-                    placeholder="Enter Tracking ID (e.g. MSC-4F8A2B1C9D)"
+                    placeholder="Enter Tracking ID or code"
                     className="inline-block w-[250px] rounded-[1rem] border border-white/10 bg-white px-5 py-4 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
                     onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
                   />
@@ -51,7 +59,7 @@ export default function TrackingSection() {
                 </div>
 
                 <p className="mt-3 text-center text-xs text-gray-300 sm:text-left">
-                  Example format: <span className="font-mono text-brand-200">MSC-4F8A2B1C9D</span>
+                  Example format: <span className="font-mono text-brand-200">MSC-4F8A2B1C9D</span>. The prefix is optional.
                 </p>
               </div>
 

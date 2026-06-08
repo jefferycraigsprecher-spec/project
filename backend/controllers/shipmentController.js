@@ -11,6 +11,13 @@ const {
 
 const normalizeStatus = (status) => String(status || 'processing').toLowerCase().replace(/\s+/g, '_');
 
+const normalizeTrackingId = (raw) => {
+  const value = String(raw || '').trim().toUpperCase().replace(/\s+/g, '')
+  if (!value) return ''
+  if (value.startsWith('MSC-')) return value
+  return `MSC-${value}`
+}
+
 const assertValidStatus = (status) => {
   if (!TRACKING_STATUSES.includes(status)) {
     const allowed = TRACKING_STATUSES.map((item) => STATUS_LABELS[item]).join(', ');
@@ -72,50 +79,9 @@ const logShipmentActivity = async (shipmentId, action, details, adminId = null) 
 // ── PUBLIC TRACKING ──────────────────────────
 exports.trackShipment = async (req, res) => {
   try {
-    const { trackingId } = req.params;
-    let adminUser = null;
-
-    try {
-      const authHeader = req.headers.authorization;
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        adminUser = decoded && decoded.id ? decoded : null;
-      }
-    } catch (authErr) {
-      adminUser = null;
-    }
-
-    const customerKey = String(req.query.customer || '').trim().toLowerCase();
-
-    if (!customerKey && !adminUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'Enter the tracking code and recipient email or phone number to view this shipment.'
-      });
-    }
-
-    const query = adminUser
-      ? `SELECT * FROM shipments WHERE tracking_id = ?`
-      : `SELECT * FROM shipments
-         WHERE tracking_id = ?
-         AND (
-          LOWER(COALESCE(recipient_email, '')) = ?
-          OR LOWER(COALESCE(sender_email, '')) = ?
-          OR REPLACE(COALESCE(recipient_phone, ''), ' ', '') = ?
-          OR REPLACE(COALESCE(sender_phone, ''), ' ', '') = ?
-         )`;
-    const params = adminUser
-      ? [trackingId.toUpperCase()]
-      : [
-          trackingId.toUpperCase(),
-          customerKey,
-          customerKey,
-          customerKey.replace(/\s+/g, ''),
-          customerKey.replace(/\s+/g, ''),
-        ];
-
-    const [shipments] = await pool.execute(query, params);
+    const trackingId = normalizeTrackingId(req.params.trackingId)
+    // Only allow lookup by exact tracking ID for public tracking
+    const [shipments] = await pool.execute('SELECT * FROM shipments WHERE tracking_id = ?', [trackingId.toUpperCase()]);
     if (!shipments.length) {
       return res.status(404).json({ success: false, message: 'Tracking details were not found for those customer details.' });
     }
@@ -231,7 +197,7 @@ exports.getShipment = async (req, res) => {
 
 exports.getShipmentByTracking = async (req, res) => {
   try {
-    const { trackingId } = req.params;
+    const trackingId = normalizeTrackingId(req.params.trackingId)
     let adminUser = null;
     try {
       const authHeader = req.headers.authorization;
@@ -243,26 +209,14 @@ exports.getShipmentByTracking = async (req, res) => {
     } catch (err) {
       adminUser = null;
     }
-
-    const customerKey = String(req.query.customer || '').trim().toLowerCase();
     const [rows] = await pool.execute(
       `SELECT s.*, a.name as created_by_name 
        FROM shipments s LEFT JOIN admins a ON s.created_by = a.id 
-       WHERE s.tracking_id = ?`, [trackingId.toUpperCase()]
+       WHERE s.tracking_id = ?`, [trackingId]
     );
 
     if (!rows.length) return res.status(404).json({ success: false, message: 'Tracking details were not found.' });
     const shipment = rows[0];
-
-    if (!adminUser) {
-      const normalizedKey = customerKey.replace(/\s+/g, '');
-      const emailMatch = [shipment.recipient_email, shipment.sender_email].some((email) => String(email || '').toLowerCase() === customerKey);
-      const phoneMatch = [shipment.recipient_phone, shipment.sender_phone].some((phone) => String(phone || '').replace(/\s+/g, '') === normalizedKey);
-      if (!customerKey || (!emailMatch && !phoneMatch)) {
-        return res.status(403).json({ success: false, message: 'Customer information is required to view this shipment.' });
-      }
-    }
-
     res.json({ success: true, shipment });
   } catch (err) {
     console.error('Get shipment by tracking error:', err);
@@ -597,9 +551,9 @@ exports.createShipment = async (req, res) => {
           id: result.insertId,
           tracking_id,
           recipient_email: recipient_email.trim(),
+          recipient_name,
           sender_name,
           sender_address,
-          recipient_name,
           recipient_address,
           service_type: service_type || 'standard',
           sender_city,
@@ -618,6 +572,14 @@ exports.createShipment = async (req, res) => {
         console.warn('Email sending skipped for shipment', result.insertId, ':', emailErr.message);
         // Email failure does not affect shipment creation
       }
+    }
+
+    // Send SMS notification when a phone number is available (non-blocking)
+    const phoneRecipient = recipient_phone || sender_phone;
+    if (phoneRecipient) {
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const smsMessage = `Your shipment ${tracking_id} is created and is currently ${normalizedStatus}. Track it at ${frontendUrl}/track/${tracking_id}`;
+      sendSmsNotification(phoneRecipient, smsMessage).catch((err) => console.warn('Shipment creation SMS failed:', err.message || err));
     }
     
     res.status(201).json({ success: true, message: 'Shipment created successfully.', tracking_id, order_id, id: result.insertId });
@@ -778,6 +740,38 @@ exports.updateShipment = async (req, res) => {
   } catch (err) {
     console.error('Update shipment error:', err);
     res.status(err.statusCode || 500).json({ success: false, message: err.statusCode ? err.message : 'Server error.' });
+  }
+};
+
+// ── ADMIN: SEND SHIPMENT SMS ──────────────────
+exports.sendShipmentSms = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [rows] = await pool.execute('SELECT * FROM shipments WHERE id = ?', [id]);
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: 'Shipment not found.' });
+    }
+
+    const shipment = rows[0];
+    const smsDestination = req.body.phone || shipment.recipient_phone || shipment.sender_phone;
+    if (!smsDestination) {
+      return res.status(400).json({ success: false, message: 'No destination phone number found. Provide phone or configure recipient/sender phone.' });
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const message = req.body.message ||
+      `Shipment ${shipment.tracking_id} for ${shipment.recipient_name || shipment.sender_name || 'customer'} is currently ${shipment.status || 'processing'} at ${shipment.current_location || 'unknown location'}. Track it at ${frontendUrl}/track/${shipment.tracking_id}`;
+
+    const result = await sendSmsNotification(smsDestination, message);
+    if (result === false) {
+      return res.status(500).json({ success: false, message: 'SMS service is not configured. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER.' });
+    }
+
+    await logShipmentActivity(shipment.id, 'shipment_sms_sent', { to: smsDestination, message }, req.admin.id);
+    res.json({ success: true, message: 'Shipment SMS sent successfully.', to: smsDestination });
+  } catch (err) {
+    console.error('Send shipment SMS error:', err);
+    res.status(err.statusCode || 500).json({ success: false, message: err.message || 'Failed to send SMS.' });
   }
 };
 
