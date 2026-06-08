@@ -175,7 +175,6 @@ h1, h2, h3, h4, h5 {
   color: #0f172a;
 }
 
-/* Paste this at the bottom of globals.css */
 html,
 body {
     width: 100%;
@@ -185,6 +184,7 @@ body {
 }
 
 * {
+    box-sizing: border-box;
     word-break: break-word;
     overflow-wrap: break-word;
 }
@@ -201,23 +201,13 @@ svg {
 button,
 input,
 textarea,
-select {
-    min-width: 0;
-}
-
-button,
-input,
-textarea,
 select,
-label,
-textarea,
-select {
-  color: var(--text-primary);
+label {
+    min-width: 0;
+    color: var(--text-primary);
 }
 
-.bg-white {
-  background-color: var(--surface) !important;
-}
+.bg-white,
 .bg-slate-50,
 .bg-gray-50,
 .bg-slate-100,
@@ -226,10 +216,12 @@ select {
 .bg-white\/5,
 .bg-white\/10,
 .bg-white\/20,
-.bg-white\/95,
-.bg-white\/90 {
-  background-color: var(--surface-strong) !important;
+.bg-white\/90,
+.bg-white\/95 {
+  background-color: var(--surface) !important;
+  color: var(--text-primary) !important;
 }
+
 .border-slate-200,
 .border-gray-200,
 .border-gray-100,
@@ -238,6 +230,7 @@ select {
 .border-white\/20 {
   border-color: var(--border) !important;
 }
+
 .text-slate-900,
 .text-slate-800,
 .text-slate-700,
