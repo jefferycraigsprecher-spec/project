@@ -1,0 +1,10 @@
+{
+  "experimentalServices": {
+    "frontend": {
+      "buildDirectory": ".next"
+    },
+    "backend": {
+      "buildDirectory": "dist"
+    }
+  }
+}
